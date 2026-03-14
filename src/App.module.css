@@ -4,9 +4,9 @@
   margin: 0;
   padding: 40px 0 0 0;
   /* Add top padding to shift everything down */
-  overflow: hidden;
+  overflow-x: hidden;
   position: relative;
-  touch-action: pan-x pinch-zoom;
+  touch-action: pan-x;
 }
 
 /* ... existing styles ... */
@@ -346,7 +346,7 @@
 .dateDetailInput {
   width: 100%;
   font-family: 'Zen Old Mincho', serif;
-  font-size: 0.9rem;
+  font-size: 16px;
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -382,7 +382,7 @@
 .scheduleCardInput {
   flex: 1;
   font-family: 'Zen Old Mincho', serif;
-  font-size: 0.9rem;
+  font-size: 16px;
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);

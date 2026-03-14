@@ -285,7 +285,6 @@ function App() {
                     placeholder="デートの詳細を入力"
                     value={dateInfos.find(d => d.date === selectedDate)?.timeText || ''}
                     onChange={(e) => handleDateInfoChange(selectedDate, true, e.target.value)}
-                    onBlur={() => window.scrollTo(0, 0)}
                     rows={1}
                   />
                 )}
@@ -298,7 +297,6 @@ function App() {
                   className={styles.scheduleCardInput}
                   value={schedules.find(s => s.date === selectedDate && s.userId === 'taisei')?.content || ''}
                   onChange={(e) => handleScheduleChange('taisei', e.target.value, selectedDate)}
-                  onBlur={() => window.scrollTo(0, 0)}
                 />
               </div>
 
@@ -309,7 +307,6 @@ function App() {
                   className={styles.scheduleCardInput}
                   value={schedules.find(s => s.date === selectedDate && s.userId === 'hina')?.content || ''}
                   onChange={(e) => handleScheduleChange('hina', e.target.value, selectedDate)}
-                  onBlur={() => window.scrollTo(0, 0)}
                 />
               </div>
             </div>
