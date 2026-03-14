@@ -265,12 +265,12 @@ function App() {
                 </label>
 
                 {dateInfos.find(d => d.date === selectedDate)?.isDate && (
-                  <input
-                    type="text"
-                    className={styles.dateTimeInput}
-                    placeholder="時間入力"
+                  <textarea
+                    className={styles.dateDetailInput}
+                    placeholder="デートの詳細を入力"
                     defaultValue={dateInfos.find(d => d.date === selectedDate)?.timeText || ''}
                     onBlur={(e) => handleDateInfoChange(selectedDate, true, e.target.value)}
+                    rows={1}
                   />
                 )}
               </div>
