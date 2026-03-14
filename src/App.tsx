@@ -110,6 +110,10 @@ function App() {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isAnimating) return; // Prevent interaction during transition
+    // Ignore swipe logic if starting from inside an input or textarea
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
     touchStartX.current = e.targetTouches[0].clientX;
     setIsDragging(true);
     setDragOffset(0);
@@ -135,15 +139,13 @@ function App() {
     setIsDragging(false);
     setIsAnimating(true); // Start sliding animation
 
-    if (Math.abs(dragOffset) > 10) {
-      setSelectedDate(null);
-    }
-
     const threshold = 100;
     if (dragOffset > threshold) {
       setSlideDirection(-1); // Move to previous
+      setSelectedDate(null); // Clear selection on successful month transition
     } else if (dragOffset < -threshold) {
       setSlideDirection(1); // Move to next
+      setSelectedDate(null); // Clear selection on successful month transition
     } else {
       setSlideDirection(0);
       setDragOffset(0); // Snap back to center
@@ -281,8 +283,9 @@ function App() {
                   <textarea
                     className={styles.dateDetailInput}
                     placeholder="デートの詳細を入力"
-                    defaultValue={dateInfos.find(d => d.date === selectedDate)?.timeText || ''}
-                    onBlur={(e) => handleDateInfoChange(selectedDate, true, e.target.value)}
+                    value={dateInfos.find(d => d.date === selectedDate)?.timeText || ''}
+                    onChange={(e) => handleDateInfoChange(selectedDate, true, e.target.value)}
+                    onBlur={() => window.scrollTo(0, 0)}
                     rows={1}
                   />
                 )}
@@ -293,8 +296,9 @@ function App() {
                 <input
                   type="text"
                   className={styles.scheduleCardInput}
-                  defaultValue={schedules.find(s => s.date === selectedDate && s.userId === 'taisei')?.content || ''}
-                  onBlur={(e) => handleScheduleChange('taisei', e.target.value, selectedDate)}
+                  value={schedules.find(s => s.date === selectedDate && s.userId === 'taisei')?.content || ''}
+                  onChange={(e) => handleScheduleChange('taisei', e.target.value, selectedDate)}
+                  onBlur={() => window.scrollTo(0, 0)}
                 />
               </div>
 
@@ -303,8 +307,9 @@ function App() {
                 <input
                   type="text"
                   className={styles.scheduleCardInput}
-                  defaultValue={schedules.find(s => s.date === selectedDate && s.userId === 'hina')?.content || ''}
-                  onBlur={(e) => handleScheduleChange('hina', e.target.value, selectedDate)}
+                  value={schedules.find(s => s.date === selectedDate && s.userId === 'hina')?.content || ''}
+                  onChange={(e) => handleScheduleChange('hina', e.target.value, selectedDate)}
+                  onBlur={() => window.scrollTo(0, 0)}
                 />
               </div>
             </div>
