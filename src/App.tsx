@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, LayoutList, ClipboardPen } from 'lucide-react';
 import styles from './App.module.css';
-import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo } from './db';
+import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase } from './db';
 
 function App() {
-  // ... (trimmed for replacement range)
+  // ... (state definitions)
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
 
@@ -19,7 +19,20 @@ function App() {
   const [dateInfos, setDateInfos] = useState<DateInfo[]>([]);
 
   useEffect(() => {
-    loadAllDateInfos();
+    // Initial sync
+    syncFromSupabase().then(() => {
+      loadAllDateInfos();
+    });
+
+    // Subscribe to changes
+    const unsubscribe = subscribeToSupabase(() => {
+      loadAllDateInfos();
+      if (selectedDate) {
+        loadSchedules(selectedDate);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const loadAllDateInfos = async () => {
