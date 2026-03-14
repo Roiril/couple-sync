@@ -25,6 +25,26 @@ export interface DateProposal {
     updatedAt: number;
 }
 
+export interface DailySchedule {
+    id: string;
+    date: string; // 'YYYY-MM-DD'
+    userId: string; // 'taisei' | 'hina'
+    content: string;
+    isDeleted?: boolean;
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface DateInfo {
+    id: string; // 'YYYY-MM-DD'
+    date: string; // 'YYYY-MM-DD'
+    isDate: boolean;
+    timeText?: string;
+    isDeleted?: boolean;
+    createdAt: number;
+    updatedAt: number;
+}
+
 interface CoupleSyncDB extends DBSchema {
     events: {
         key: string;
@@ -34,6 +54,16 @@ interface CoupleSyncDB extends DBSchema {
     proposals: {
         key: string;
         value: DateProposal;
+        indexes: { 'by-updated': number };
+    };
+    daily_schedules: {
+        key: string; // date_userId
+        value: DailySchedule;
+        indexes: { 'by-updated': number, 'by-date': string };
+    };
+    date_infos: {
+        key: string; // date
+        value: DateInfo;
         indexes: { 'by-updated': number };
     };
     metadata: {
@@ -46,7 +76,7 @@ let dbPromise: Promise<IDBPDatabase<CoupleSyncDB>> | null = null;
 
 export function initDB() {
     if (!dbPromise) {
-        dbPromise = openDB<CoupleSyncDB>('couple-sync', 1, {
+        dbPromise = openDB<CoupleSyncDB>('couple-sync', 3, {
             upgrade(db) {
                 if (!db.objectStoreNames.contains('events')) {
                     const store = db.createObjectStore('events', { keyPath: 'id' });
@@ -54,6 +84,15 @@ export function initDB() {
                 }
                 if (!db.objectStoreNames.contains('proposals')) {
                     const store = db.createObjectStore('proposals', { keyPath: 'id' });
+                    store.createIndex('by-updated', 'updatedAt');
+                }
+                if (!db.objectStoreNames.contains('daily_schedules')) {
+                    const store = db.createObjectStore('daily_schedules', { keyPath: 'id' });
+                    store.createIndex('by-updated', 'updatedAt');
+                    store.createIndex('by-date', 'date');
+                }
+                if (!db.objectStoreNames.contains('date_infos')) {
+                    const store = db.createObjectStore('date_infos', { keyPath: 'id' });
                     store.createIndex('by-updated', 'updatedAt');
                 }
                 if (!db.objectStoreNames.contains('metadata')) {
@@ -105,6 +144,36 @@ export async function saveProposal(proposal: DateProposal): Promise<void> {
     void pushProposal(updatedProposal);
 }
 
+// --- Daily Schedules API ---
+
+export async function getDailySchedules(date: string): Promise<DailySchedule[]> {
+    const db = await initDB();
+    const schedules = await db.getAllFromIndex('daily_schedules', 'by-date', date);
+    return schedules.filter(s => !s.isDeleted);
+}
+
+export async function saveDailySchedule(schedule: DailySchedule): Promise<void> {
+    const db = await initDB();
+    const updatedSchedule = { ...schedule, isDeleted: schedule.isDeleted ?? false, updatedAt: Date.now() };
+    await db.put('daily_schedules', updatedSchedule);
+    void pushDailySchedule(updatedSchedule);
+}
+
+// --- Date Infos API ---
+
+export async function getDateInfos(): Promise<DateInfo[]> {
+    const db = await initDB();
+    const infos = await db.getAllFromIndex('date_infos', 'by-updated');
+    return infos.filter(i => !i.isDeleted);
+}
+
+export async function saveDateInfo(info: DateInfo): Promise<void> {
+    const db = await initDB();
+    const updatedInfo = { ...info, isDeleted: info.isDeleted ?? false, updatedAt: Date.now() };
+    await db.put('date_infos', updatedInfo);
+    void pushDateInfo(updatedInfo);
+}
+
 // --- Sync Logic ---
 
 async function pushEvent(event: CoupleEvent) {
@@ -146,6 +215,44 @@ async function pushProposal(proposal: DateProposal) {
         if (error) throw error;
     } catch (e) {
         console.error('Failed to push proposal to Supabase', e);
+    }
+}
+
+async function pushDailySchedule(schedule: DailySchedule) {
+    try {
+        const { error } = await supabase
+            .from('daily_schedules')
+            .upsert({
+                id: schedule.id,
+                date: schedule.date,
+                user_id: schedule.userId,
+                content: schedule.content,
+                is_deleted: schedule.isDeleted,
+                created_at: schedule.createdAt,
+                updated_at: schedule.updatedAt
+            });
+        if (error) throw error;
+    } catch (e) {
+        console.error('Failed to push daily schedule to Supabase', e);
+    }
+}
+
+async function pushDateInfo(info: DateInfo) {
+    try {
+        const { error } = await supabase
+            .from('date_infos')
+            .upsert({
+                id: info.id,
+                date: info.date,
+                is_date: info.isDate,
+                time_text: info.timeText,
+                is_deleted: info.isDeleted,
+                created_at: info.createdAt,
+                updated_at: info.updatedAt
+            });
+        if (error) throw error;
+    } catch (e) {
+        console.error('Failed to push date info to Supabase', e);
     }
 }
 
@@ -213,6 +320,60 @@ export async function syncFromSupabase() {
             await tx.done;
         }
 
+        // Pull Daily Schedules
+        const { data: remoteSchedules, error: schedulesError } = await supabase
+            .from('daily_schedules')
+            .select()
+            .gt('updated_at', lastSyncedAt);
+        
+        if (schedulesError) throw schedulesError;
+
+        if (remoteSchedules && remoteSchedules.length > 0) {
+            const tx = db.transaction('daily_schedules', 'readwrite');
+            for (const r of remoteSchedules) {
+                const local = await tx.store.get(r.id);
+                if (!local || r.updated_at > local.updatedAt) {
+                    await tx.store.put({
+                        id: r.id,
+                        date: r.date,
+                        userId: r.user_id,
+                        content: r.content,
+                        isDeleted: r.is_deleted,
+                        createdAt: r.created_at,
+                        updatedAt: r.updated_at
+                    });
+                }
+            }
+            await tx.done;
+        }
+
+        // Pull Date Infos
+        const { data: remoteDateInfos, error: dateInfosError } = await supabase
+            .from('date_infos')
+            .select()
+            .gt('updated_at', lastSyncedAt);
+        
+        if (dateInfosError) throw dateInfosError;
+
+        if (remoteDateInfos && remoteDateInfos.length > 0) {
+            const tx = db.transaction('date_infos', 'readwrite');
+            for (const r of remoteDateInfos) {
+                const local = await tx.store.get(r.id);
+                if (!local || r.updated_at > local.updatedAt) {
+                    await tx.store.put({
+                        id: r.id,
+                        date: r.date,
+                        isDate: r.is_date,
+                        timeText: r.time_text,
+                        isDeleted: r.is_deleted,
+                        createdAt: r.created_at,
+                        updatedAt: r.updated_at
+                    });
+                }
+            }
+            await tx.done;
+        }
+
         await db.put('metadata', now, 'lastSyncedAt');
     } catch (e) {
         console.error('Failed to sync from Supabase', e);
@@ -232,8 +393,22 @@ export function subscribeToSupabase(onUpdate: () => void) {
         })
         .subscribe();
 
+    const schedulesChannel = supabase.channel('public:daily_schedules')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_schedules' }, () => {
+            syncFromSupabase().then(onUpdate);
+        })
+        .subscribe();
+
+    const dateInfosChannel = supabase.channel('public:date_infos')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'date_infos' }, () => {
+            syncFromSupabase().then(onUpdate);
+        })
+        .subscribe();
+
     return () => {
         supabase.removeChannel(eventsChannel);
         supabase.removeChannel(proposalsChannel);
+        supabase.removeChannel(schedulesChannel);
+        supabase.removeChannel(dateInfosChannel);
     };
 }

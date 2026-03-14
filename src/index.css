@@ -13,6 +13,18 @@
 }
 
 @font-face {
+  font-family: 'Zen Old Mincho';
+  src: url('/fonts/ZenOldMincho-Regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Zen Old Mincho';
+  src: url('/fonts/ZenOldMincho-Bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+@font-face {
   font-family: 'Noto Emoji';
   src: url('/fonts/NotoEmoji-VariableFont_wght.ttf') format('truetype');
 }
