@@ -1,6 +1,6 @@
 .container {
-  max-width: 600px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 16px;
   padding-bottom: 140px;
 }
@@ -119,19 +119,20 @@
 
 /* Calendar Placeholder Specific Styles */
 .calendarContainer {
-  margin-top: 2rem;
-  padding: 1rem;
+  margin-top: 1rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .calendarGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   width: 100%;
-  max-width: 400px;
-  margin-top: 1rem;
+  margin-top: 2rem;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .calendarDay {
@@ -140,8 +141,52 @@
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  border-right: 1px solid rgba(255, 222, 173, 0.2);
-  border-bottom: 1px solid rgba(255, 222, 173, 0.2);
+  border-right: 1px solid rgba(255, 222, 173, 0.1);
+  border-bottom: 1px solid rgba(255, 222, 173, 0.1);
+}
+
+.pastDay {
+  opacity: 0.3;
+}
+
+.todayCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.todaySvg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.8;
+}
+
+.dayNumber {
+  position: relative;
+  z-index: 1;
+}
+
+.yearLabel {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.monthLabel {
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
 }
 
 /* Remove right border for the last column (7th, 14th, etc.) */
