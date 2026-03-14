@@ -4,7 +4,7 @@ import styles from './App.module.css';
 import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo } from './db';
 
 function App() {
-// ... (trimmed for replacement range)
+  // ... (trimmed for replacement range)
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
 
@@ -47,7 +47,7 @@ function App() {
 
   const handleScheduleChange = async (userId: string, content: string, dateAtTimeOfRender: string) => {
     // Use the date passed in to ensure we save for the correct date even if state shifted
-    
+
     // Optimistic update
     setSchedules(prev => {
       const existingIndex = prev.findIndex(s => s.userId === userId && s.date === dateAtTimeOfRender);
@@ -66,10 +66,10 @@ function App() {
       } else {
         newState.push(newSchedule);
       }
-      
+
       // Trigger async save
       void saveDailySchedule(newSchedule);
-      
+
       return newState;
     });
   };
@@ -112,7 +112,7 @@ function App() {
 
   const handleTouchEnd = () => {
     if (touchStartX.current === null || isAnimating) return;
-    
+
     if (dragOffset === 0) {
       setIsDragging(false);
       touchStartX.current = null;
@@ -141,14 +141,14 @@ function App() {
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return; // Ignore bubbling transitions from children
-    
+
     if (isAnimating) {
       if (slideDirection !== 0) {
         const newMonth = new Date(displayMonth);
         newMonth.setMonth(displayMonth.getMonth() + slideDirection);
         setDisplayMonth(newMonth);
       }
-      
+
       // Reset position with transition disabled
       setSlideDirection(0);
       setDragOffset(0);
@@ -193,8 +193,8 @@ function App() {
             const hasDateInfo = dateInfos.find(d => d.date === dateStr)?.isDate;
 
             return (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className={`${styles.calendarDay} ${isPast ? styles.pastDay : ''} ${isSelected ? styles.selectedDay : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -223,7 +223,7 @@ function App() {
   const nextMonth = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 1);
 
   return (
-    <div 
+    <div
       className={styles.container}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -234,11 +234,11 @@ function App() {
       {viewMode === 'monthly' ? (
         <>
           <div className={styles.swipeWrapper}>
-            <div 
+            <div
               className={styles.calendarSlider}
               onTransitionEnd={handleTransitionEnd}
-              style={{ 
-                transform: slideDirection === 0 
+              style={{
+                transform: slideDirection === 0
                   ? `translateX(calc(-33.333% + ${dragOffset}px))`
                   : `translateX(${slideDirection === 1 ? '-66.666%' : '0%'})`,
                 transition: isDragging || !isAnimating ? 'none' : 'transform 0.3s ease-out'
@@ -249,25 +249,25 @@ function App() {
               {renderMonthGrid(nextMonth)}
             </div>
           </div>
-          
+
           {selectedDate && (
             <div className={styles.scheduleCardsContainer} key={selectedDate} onClick={(e) => e.stopPropagation()}>
-              
+
               <div className={styles.dateControlRow}>
                 <label className={styles.dateCheckboxLabel}>
-                  <input 
-                    type="checkbox" 
-                    className={styles.dateCheckbox} 
+                  <input
+                    type="checkbox"
+                    className={styles.dateCheckbox}
                     checked={dateInfos.find(d => d.date === selectedDate)?.isDate || false}
                     onChange={(e) => handleDateInfoChange(selectedDate, e.target.checked)}
                   />
                   <span>デートする</span>
                 </label>
-                
+
                 {dateInfos.find(d => d.date === selectedDate)?.isDate && (
-                  <input 
-                    type="text" 
-                    className={styles.dateTimeInput} 
+                  <input
+                    type="text"
+                    className={styles.dateTimeInput}
                     placeholder="時間入力"
                     defaultValue={dateInfos.find(d => d.date === selectedDate)?.timeText || ''}
                     onBlur={(e) => handleDateInfoChange(selectedDate, true, e.target.value)}
@@ -277,7 +277,7 @@ function App() {
 
               <div className={styles.scheduleCard}>
                 <div className={styles.scheduleCardUser}>たいせい：</div>
-                <input 
+                <input
                   type="text"
                   className={styles.scheduleCardInput}
                   defaultValue={schedules.find(s => s.date === selectedDate && s.userId === 'taisei')?.content || ''}
@@ -287,7 +287,7 @@ function App() {
 
               <div className={styles.scheduleCard}>
                 <div className={styles.scheduleCardUser}>ひな：</div>
-                <input 
+                <input
                   type="text"
                   className={styles.scheduleCardInput}
                   defaultValue={schedules.find(s => s.date === selectedDate && s.userId === 'hina')?.content || ''}
