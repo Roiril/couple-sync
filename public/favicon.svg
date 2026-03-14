@@ -1,4 +1,5 @@
 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#000000"/>
     <!-- カレンダーの本体 -->
     <rect x="10" y="20" width="80" height="75" rx="10" fill="none" stroke="#fffaf0" stroke-width="6"/>
     
