@@ -291,7 +291,7 @@ function App() {
               </div>
 
               <div className={styles.scheduleCard}>
-                <div className={styles.scheduleCardUser}>たいせい：</div>
+                <div className={styles.scheduleCardUser}>たい：</div>
                 <input
                   type="text"
                   className={styles.scheduleCardInput}
