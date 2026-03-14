@@ -1,0 +1,168 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 140px;
+}
+
+.emptyState {
+  text-align: center;
+  opacity: 0.5;
+  margin-top: 20vh;
+}
+
+.footerActions {
+  margin-top: 32px;
+  text-align: center;
+  opacity: 0.5;
+  font-size: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footerLink {
+  text-decoration: underline;
+}
+
+.syncButton {
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.syncButtonDisabled {
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--accent-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 40;
+  padding: 0 16px;
+}
+
+.navInner {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.navButton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-color);
+  opacity: 0.5;
+  padding: 12px;
+}
+
+.navButtonActive {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  color: var(--accent-color);
+  opacity: 1;
+}
+
+.navLabel {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.navSpacer {
+  width: 80px;
+}
+
+.fab {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+  background-color: var(--bg-color);
+  border: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+/* Calendar Placeholder Specific Styles */
+.calendarContainer {
+  margin-top: 2rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  width: 100%;
+  max-width: 400px;
+  margin-top: 1rem;
+}
+
+.calendarDay {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  border-right: 1px solid rgba(255, 222, 173, 0.2);
+  border-bottom: 1px solid rgba(255, 222, 173, 0.2);
+}
+
+/* Remove right border for the last column (7th, 14th, etc.) */
+.calendarDay:nth-child(7n) {
+  border-right: none;
+}
+
+/* Remove bottom border for the last 7 days (last row) */
+/* This assumes there are exactly 31 days + 7 header days, which is not true here.
+   In current App.tsx, we have 7 weekday headers + 31 days = 38 items.
+   38th item is in row 6 (36, 37, 38).
+   Let's target items from index 32 onwards (last row start depends on total count).
+*/
+.calendarDay:nth-last-child(-n+7) {
+  border-bottom: none;
+}
+
+.calendarHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  width: 100%;
+}

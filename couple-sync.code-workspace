@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "couple-sync",
+			"path": "."
+		},
+		{
+			"name": ".agent",
+			"path": "../cogni-storage/.agent"
+		}
+	],
+	"settings": {}
+}
