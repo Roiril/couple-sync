@@ -383,7 +383,6 @@ async function pushDirtyRecords() {
 // --- Sync Logic ---
 
 let isSyncing = false;
-const SYNC_OVERLAP_MS = 5000;
 
 export async function syncFromSupabase() {
     if (isSyncing) return;
@@ -393,15 +392,12 @@ export async function syncFromSupabase() {
         const db = await initDB();
         await pushDirtyRecords();
 
-        const lastSyncedAt = (await db.get('metadata', 'lastSyncedAt')) || 0;
-        const syncThreshold = Math.max(0, lastSyncedAt - SYNC_OVERLAP_MS);
         const now = Date.now();
 
         // Pull Events
         const { data: remoteEvents, error: eventsError } = await supabase
             .from('couple_events')
-            .select()
-            .gt('updated_at', syncThreshold);
+            .select();
         if (eventsError) throw eventsError;
         if (remoteEvents && remoteEvents.length > 0) {
             const tx = db.transaction('events', 'readwrite');
@@ -429,8 +425,7 @@ export async function syncFromSupabase() {
         // Pull Proposals
         const { data: remoteProposals, error: proposalsError } = await supabase
             .from('date_proposals')
-            .select()
-            .gt('updated_at', syncThreshold);
+            .select();
         if (proposalsError) throw proposalsError;
         if (remoteProposals && remoteProposals.length > 0) {
             const tx = db.transaction('proposals', 'readwrite');
@@ -456,8 +451,7 @@ export async function syncFromSupabase() {
         // Pull Daily Schedules
         const { data: remoteSchedules, error: schedulesError } = await supabase
             .from('daily_schedules')
-            .select()
-            .gt('updated_at', syncThreshold);
+            .select();
         if (schedulesError) throw schedulesError;
         if (remoteSchedules && remoteSchedules.length > 0) {
             const tx = db.transaction('daily_schedules', 'readwrite');
@@ -482,8 +476,7 @@ export async function syncFromSupabase() {
         // Pull Date Infos
         const { data: remoteDateInfos, error: dateInfosError } = await supabase
             .from('date_infos')
-            .select()
-            .gt('updated_at', syncThreshold);
+            .select();
         if (dateInfosError) throw dateInfosError;
         if (remoteDateInfos && remoteDateInfos.length > 0) {
             const tx = db.transaction('date_infos', 'readwrite');
