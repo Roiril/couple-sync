@@ -403,7 +403,7 @@ export async function syncFromSupabase() {
             const tx = db.transaction('events', 'readwrite');
             for (const r of remoteEvents) {
                 const local = await tx.store.get(r.id);
-                if (!local || r.updated_at > local.updatedAt) {
+                if (!local || !local.isDirty) {
                     await tx.store.put({
                         id: r.id,
                         title: r.title,
@@ -431,7 +431,7 @@ export async function syncFromSupabase() {
             const tx = db.transaction('proposals', 'readwrite');
             for (const r of remoteProposals) {
                 const local = await tx.store.get(r.id);
-                if (!local || r.updated_at > local.updatedAt) {
+                if (!local || !local.isDirty) {
                     await tx.store.put({
                         id: r.id,
                         eventId: r.event_id,
@@ -457,7 +457,7 @@ export async function syncFromSupabase() {
             const tx = db.transaction('daily_schedules', 'readwrite');
             for (const r of remoteSchedules) {
                 const local = await tx.store.get(r.id);
-                if (!local || r.updated_at > local.updatedAt) {
+                if (!local || !local.isDirty) {
                     await tx.store.put({
                         id: r.id,
                         date: r.date,
@@ -482,7 +482,7 @@ export async function syncFromSupabase() {
             const tx = db.transaction('date_infos', 'readwrite');
             for (const r of remoteDateInfos) {
                 const local = await tx.store.get(r.id);
-                if (!local || r.updated_at > local.updatedAt) {
+                if (!local || !local.isDirty) {
                     await tx.store.put({
                         id: r.id,
                         date: r.date,
