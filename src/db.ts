@@ -42,7 +42,7 @@ export interface DateInfo {
     id: string; // 'YYYY-MM-DD'
     date: string; // 'YYYY-MM-DD'
     isDate: boolean;
-    status?: 'confirmed' | 'tentative';
+    status?: 'confirmed' | 'tentative' | null;
     timeText?: string;
     isDeleted?: boolean;
     isDirty?: boolean;

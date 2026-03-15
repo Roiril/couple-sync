@@ -109,7 +109,7 @@ function App() {
       id: dateAtTimeOfRender,
       date: dateAtTimeOfRender,
       isDate,
-      status: status !== undefined ? status : (isDate ? existing?.status : undefined),
+      status: status !== undefined ? status : (isDate ? (existing?.status || null) : null),
       timeText: timeText !== undefined ? timeText : existing?.timeText || '',
       createdAt: existing ? existing.createdAt : Date.now(),
       updatedAt: Date.now()
