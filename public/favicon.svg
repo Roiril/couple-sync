@@ -1,15 +1,14 @@
 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100" height="100" fill="#000000"/>
     <!-- カレンダーの本体 -->
-    <rect x="10" y="20" width="80" height="75" rx="10" fill="none" stroke="#fffaf0" stroke-width="6"/>
+    <rect x="10" y="20" width="80" height="75" rx="10" fill="none" stroke="#333333" stroke-width="6"/>
     
     <!-- ヘッダーライン -->
-    <line x1="10" y1="46" x2="90" y2="46" stroke="#fffaf0" stroke-width="6"/>
+    <line x1="10" y1="46" x2="90" y2="46" stroke="#333333" stroke-width="6"/>
     
     <!-- バインダーのリング -->
-    <rect x="25" y="8" width="8" height="20" rx="4" fill="#ffdead"/>
-    <rect x="67" y="8" width="8" height="20" rx="4" fill="#ffdead"/>
+    <rect x="25" y="8" width="8" height="20" rx="4" fill="#E74C3C"/>
+    <rect x="67" y="8" width="8" height="20" rx="4" fill="#E74C3C"/>
     
     <!-- テキスト (HT) -->
-    <text x="50" y="83" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fffaf0" text-anchor="middle" letter-spacing="2">HT</text>
+    <text x="50" y="83" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#333333" text-anchor="middle" letter-spacing="2">HT</text>
 </svg>

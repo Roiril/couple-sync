@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar as CalendarIcon, LayoutList, ClipboardPen } from 'lucide-react';
+import { Calendar as CalendarIcon, ClipboardPen } from 'lucide-react';
 import styles from './App.module.css';
 import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase } from './db';
 
 function App() {
   // ... (state definitions)
-  const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
+  const [viewMode, setViewMode] = useState<'monthly' | 'setting'>('monthly');
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
 
   const [dragOffset, setDragOffset] = useState(0);
@@ -15,20 +15,32 @@ function App() {
   const touchStartX = useRef<number | null>(null);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const selectedDateRef = useRef<string | null>(null);
   const [schedules, setSchedules] = useState<DailySchedule[]>([]);
   const [dateInfos, setDateInfos] = useState<DateInfo[]>([]);
+  const [isSyncing, setIsSyncing] = useState(true);
+
+  // Keep ref in sync with state so Realtime callbacks always see current value
+  useEffect(() => {
+    selectedDateRef.current = selectedDate;
+  }, [selectedDate]);
 
   useEffect(() => {
     // Initial sync
+    setIsSyncing(true);
     syncFromSupabase().then(() => {
       loadAllDateInfos();
+      setIsSyncing(false);
+    }).catch(() => {
+      setIsSyncing(false);
     });
 
-    // Subscribe to changes
+    // Subscribe to changes — use ref to avoid stale closure
     const unsubscribe = subscribeToSupabase(() => {
       loadAllDateInfos();
-      if (selectedDate) {
-        loadSchedules(selectedDate);
+      const currentDate = selectedDateRef.current;
+      if (currentDate) {
+        loadSchedules(currentDate);
       }
     });
 
@@ -40,12 +52,14 @@ function App() {
     setDateInfos(infos);
   };
 
+  // Clean up schedules when display month changes
+  useEffect(() => {
+    setSchedules([]);
+  }, [displayMonth]);
+
   useEffect(() => {
     if (selectedDate) {
-      // Only load if not already in state to avoid redundant fetches/flashes
-      if (!schedules.some(s => s.date === selectedDate)) {
-        loadSchedules(selectedDate);
-      }
+      loadSchedules(selectedDate);
     }
   }, [selectedDate]);
 
@@ -87,14 +101,17 @@ function App() {
     });
   };
 
-  const handleDateInfoChange = async (dateAtTimeOfRender: string, isDate: boolean, timeText?: string) => {
+  const handleDateInfoChange = async (dateAtTimeOfRender: string, isDate: boolean, status?: 'confirmed' | 'tentative', timeText?: string) => {
     const existingIndex = dateInfos.findIndex(d => d.date === dateAtTimeOfRender);
+    const existing = existingIndex >= 0 ? dateInfos[existingIndex] : null;
+    
     const newInfo: DateInfo = {
       id: dateAtTimeOfRender,
       date: dateAtTimeOfRender,
       isDate,
-      timeText: timeText !== undefined ? timeText : (existingIndex >= 0 ? dateInfos[existingIndex].timeText : ''),
-      createdAt: existingIndex >= 0 ? dateInfos[existingIndex].createdAt : Date.now(),
+      status: status !== undefined ? status : (isDate ? existing?.status : undefined),
+      timeText: timeText !== undefined ? timeText : existing?.timeText || '',
+      createdAt: existing ? existing.createdAt : Date.now(),
       updatedAt: Date.now()
     };
 
@@ -218,7 +235,11 @@ function App() {
               >
                 <div className={hasDateInfo ? styles.todayCircle : ''}>
                   {hasDateInfo && (
-                    <svg className={styles.todaySvg} viewBox="-20 0 730 540" xmlns="http://www.w3.org/2000/svg">
+                    <svg 
+                      className={`${styles.todaySvg} ${dateInfos.find(d => d.date === dateStr)?.status === 'tentative' ? styles.tentativeDate : ''}`} 
+                      viewBox="-20 0 730 540" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <g fill="#F23D47" transform="translate(-45, 0) scale(1.15, 1)">
                         <path d="M 170,410 C 70,320 65,150 230,80 C 410,15 565,85 565,220 C 565,345 460,455 310,515 C 220,545 140,555 85,560 C 140,545 220,515 295,485 C 440,420 535,325 535,220 C 535,110 395,45 240,100 C 105,150 100,305 185,400 Z" />
                       </g>
@@ -248,7 +269,7 @@ function App() {
       <div className={styles.yearLabel}>{displayMonth.getFullYear()}</div>
       {viewMode === 'monthly' ? (
         <>
-          <div className={styles.swipeWrapper}>
+          <div className={styles.swipeWrapper} style={{ opacity: isSyncing ? 0.5 : 1, transition: 'opacity 0.3s', pointerEvents: isSyncing ? 'none' : 'auto' }}>
             <div
               className={styles.calendarSlider}
               onTransitionEnd={handleTransitionEnd}
@@ -269,22 +290,41 @@ function App() {
             <div className={styles.scheduleCardsContainer} key={selectedDate} onClick={(e) => e.stopPropagation()}>
 
               <div className={styles.dateControlRow}>
-                <label className={styles.dateCheckboxLabel}>
-                  <input
-                    type="checkbox"
-                    className={styles.dateCheckbox}
-                    checked={dateInfos.find(d => d.date === selectedDate)?.isDate || false}
-                    onChange={(e) => handleDateInfoChange(selectedDate, e.target.checked)}
-                  />
-                  <span>デートする</span>
-                </label>
+                <div className={styles.statusSwitch}>
+                  <button
+                    className={`${styles.statusButton} ${dateInfos.find(d => d.date === selectedDate)?.status === 'confirmed' ? styles.statusButtonActiveConfirmed : ''}`}
+                    onClick={() => {
+                      const current = dateInfos.find(d => d.date === selectedDate);
+                      if (current?.status === 'confirmed') {
+                        handleDateInfoChange(selectedDate, false, undefined);
+                      } else {
+                        handleDateInfoChange(selectedDate, true, 'confirmed');
+                      }
+                    }}
+                  >
+                    デート確定
+                  </button>
+                  <button
+                    className={`${styles.statusButton} ${dateInfos.find(d => d.date === selectedDate)?.status === 'tentative' ? styles.statusButtonActiveTentative : ''}`}
+                    onClick={() => {
+                      const current = dateInfos.find(d => d.date === selectedDate);
+                      if (current?.status === 'tentative') {
+                        handleDateInfoChange(selectedDate, false, undefined);
+                      } else {
+                        handleDateInfoChange(selectedDate, true, 'tentative');
+                      }
+                    }}
+                  >
+                    調整中・仮
+                  </button>
+                </div>
 
                 {dateInfos.find(d => d.date === selectedDate)?.isDate && (
                   <textarea
                     className={styles.dateDetailInput}
                     placeholder="デートの詳細を入力"
                     value={dateInfos.find(d => d.date === selectedDate)?.timeText || ''}
-                    onChange={(e) => handleDateInfoChange(selectedDate, true, e.target.value)}
+                    onChange={(e) => handleDateInfoChange(selectedDate, true, undefined, e.target.value)}
                     rows={1}
                   />
                 )}
@@ -312,15 +352,10 @@ function App() {
             </div>
           )}
         </>
-      ) : viewMode === 'weekly' ? (
-        <div className={styles.emptyState}>
-          <LayoutList size={48} strokeWidth={1.5} style={{ marginBottom: '16px', opacity: 0.5 }} />
-          <div>Weekly Schedule</div>
-        </div>
       ) : (
         <div className={styles.emptyState}>
           <ClipboardPen size={48} strokeWidth={1.5} style={{ marginBottom: '16px', opacity: 0.5 }} />
-          <div>Daily Tasks</div>
+          <div>Settings</div>
         </div>
       )}
 
@@ -336,19 +371,11 @@ function App() {
           </button>
 
           <button
-            onClick={() => setViewMode('weekly')}
-            className={viewMode === 'weekly' ? styles.navButtonActive : styles.navButton}
-          >
-            <LayoutList size={24} strokeWidth={1.5} />
-            <span className={styles.navLabel}>Weekly</span>
-          </button>
-
-          <button
-            onClick={() => setViewMode('daily')}
-            className={viewMode === 'daily' ? styles.navButtonActive : styles.navButton}
+            onClick={() => setViewMode('setting')}
+            className={viewMode === 'setting' ? styles.navButtonActive : styles.navButton}
           >
             <ClipboardPen size={24} strokeWidth={1.5} />
-            <span className={styles.navLabel}>Daily</span>
+            <span className={styles.navLabel}>Settings</span>
           </button>
         </div>
       </div>

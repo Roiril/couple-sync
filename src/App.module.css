@@ -193,8 +193,8 @@
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  border-right: 1px solid rgba(255, 222, 173, 0.1);
-  border-bottom: 1px solid rgba(255, 222, 173, 0.1);
+  border-right: 1px solid rgba(255, 222, 173, 0.2);
+  border-bottom: 1px solid rgba(255, 222, 173, 0.2);
 }
 
 .pastDay {
@@ -220,6 +220,23 @@
   pointer-events: none;
   z-index: 0;
   opacity: 0.8;
+}
+
+.tentativeDate {
+  opacity: 0.5;
+  stroke: #F23D47;
+  stroke-width: 20;
+  stroke-dasharray: 100 60;
+  fill: none !important;
+}
+
+.tentativeDate g {
+  fill: none !important;
+}
+
+.tentativeDate path {
+  fill: none !important;
+  stroke: #F23D47;
 }
 
 .dayNumber {
@@ -303,62 +320,58 @@
   margin-bottom: 8px;
 }
 
-.dateCheckboxLabel {
+.statusSwitch {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: 'Zen Old Mincho', serif;
-  font-size: 0.85rem;
-  color: var(--text-color);
-  cursor: pointer;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px;
+  gap: 2px;
 }
 
-.dateCheckbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  border-radius: 4px;
+.statusButton {
+  flex: 1;
+  border: none;
   background: transparent;
+  color: var(--text-color);
+  opacity: 0.4;
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 0.75rem;
+  padding: 3px 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
+  letter-spacing: 0.02em;
 }
 
-.dateCheckbox:checked {
-  background: #F23D47;
-  border-color: #F23D47;
+.statusButtonActiveConfirmed {
+  opacity: 1;
+  background: rgba(242, 61, 71, 0.8);
+  font-weight: 500;
 }
 
-.dateCheckbox:checked::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+.statusButtonActiveTentative {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid #F23D47;
 }
 
 .dateDetailInput {
   width: 100%;
   font-family: 'Zen Old Mincho', serif;
-  font-size: 14px;
+  font-size: 13px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
   color: var(--text-color);
-  padding: 4px 0;
+  padding: 2px 8px;
+  margin-top: 4px;
   outline: none;
   resize: none;
-  transition: border-bottom-color 0.2s;
+  transition: border-left-color 0.2s;
 }
 
 .dateDetailInput:focus {
-  border-bottom-color: var(--accent-color);
+  border-left-color: var(--accent-color);
 }
 
 .dateDetailInput::placeholder {
@@ -382,13 +395,13 @@
 .scheduleCardInput {
   flex: 1;
   font-family: 'Zen Old Mincho', serif;
-  font-size: 14px;
+  font-size: 13px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-color);
   outline: none;
-  padding: 4px 0;
+  padding: 2px 0;
   transition: border-bottom-color 0.2s;
 }
 
