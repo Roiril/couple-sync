@@ -474,7 +474,7 @@
 
 /* Default: semi-transparent lemon */
 .anniversarySvgDefault g {
-  stroke: rgba(255, 244, 79, 0.2);
+  stroke: rgba(255, 244, 79, 0.7);
 }
 
 /* Confirmed date: solid red */

@@ -109,6 +109,40 @@ function App() {
     isAnniversary?: boolean,
     anniversaryName?: string
   ) => {
+    const monthDay = dateAtTimeOfRender.slice(5);
+    
+    // 1. Handle Anniversary changes (MM-DD recurrence)
+    if (isAnniversary !== undefined || anniversaryName !== undefined) {
+      const sourceAnniv = dateInfos.find(d => d.isAnniversary && d.date.endsWith(monthDay));
+      const targetDate = sourceAnniv ? sourceAnniv.date : dateAtTimeOfRender;
+      
+      const existingIndex = dateInfos.findIndex(d => d.date === targetDate);
+      const existing = existingIndex >= 0 ? dateInfos[existingIndex] : null;
+      
+      const newInfo: DateInfo = {
+        id: targetDate,
+        date: targetDate,
+        isDate: existing?.isDate || (targetDate === dateAtTimeOfRender ? isDate : false),
+        status: existing?.status || (targetDate === dateAtTimeOfRender ? (status || null) : null),
+        timeText: existing?.timeText || (targetDate === dateAtTimeOfRender ? (timeText || '') : ''),
+        isAnniversary: isAnniversary !== undefined ? isAnniversary : existing?.isAnniversary || false,
+        anniversaryName: anniversaryName !== undefined ? anniversaryName : existing?.anniversaryName || '',
+        createdAt: existing ? existing.createdAt : Date.now(),
+        updatedAt: Date.now()
+      };
+      
+      const newInfos = [...dateInfos];
+      if (existingIndex >= 0) {
+        newInfos[existingIndex] = newInfo;
+      } else {
+        newInfos.push(newInfo);
+      }
+      setDateInfos(newInfos);
+      void saveDateInfo(newInfo);
+      return;
+    }
+
+    // 2. Handle Date Status changes (Specific YYYY-MM-DD)
     const existingIndex = dateInfos.findIndex(d => d.date === dateAtTimeOfRender);
     const existing = existingIndex >= 0 ? dateInfos[existingIndex] : null;
     
@@ -118,8 +152,8 @@ function App() {
       isDate,
       status: status !== undefined ? status : (isDate ? (existing?.status || null) : null),
       timeText: timeText !== undefined ? timeText : existing?.timeText || '',
-      isAnniversary: isAnniversary !== undefined ? isAnniversary : existing?.isAnniversary || false,
-      anniversaryName: anniversaryName !== undefined ? anniversaryName : existing?.anniversaryName || '',
+      isAnniversary: existing?.isAnniversary || false,
+      anniversaryName: existing?.anniversaryName || '',
       createdAt: existing ? existing.createdAt : Date.now(),
       updatedAt: Date.now()
     };
@@ -387,26 +421,34 @@ function App() {
                 />
               </div>
 
-              <div className={styles.anniversaryRow}>
-                <button
-                  className={`${styles.statusButton} ${styles.statusButtonAnniversary} ${dateInfos.find(d => d.date === selectedDate)?.isAnniversary ? styles.statusButtonActiveAnniversary : ''}`}
-                  onClick={() => {
-                    const current = dateInfos.find(d => d.date === selectedDate);
-                    handleDateInfoChange(selectedDate, !!current?.isDate, undefined, undefined, !current?.isAnniversary);
-                  }}
-                >
-                  {dateInfos.find(d => d.date === selectedDate)?.isAnniversary ? '記念日' : '記念日にする'}
-                </button>
-                {dateInfos.find(d => d.date === selectedDate)?.isAnniversary && (
-                  <input
-                    type="text"
-                    className={styles.anniversaryInput}
-                    placeholder="何の記念日ですか？"
-                    value={dateInfos.find(d => d.date === selectedDate)?.anniversaryName || ''}
-                    onChange={(e) => handleDateInfoChange(selectedDate, !!dateInfos.find(d => d.date === selectedDate)?.isDate, undefined, undefined, true, e.target.value)}
-                  />
-                )}
-              </div>
+              {(() => {
+                const monthDay = selectedDate.slice(5);
+                const sourceAnniv = dateInfos.find(info => info.isAnniversary && info.date.endsWith(monthDay));
+                const isAnniversary = !!sourceAnniv;
+
+                return (
+                  <div className={styles.anniversaryRow}>
+                    <button
+                      className={`${styles.statusButton} ${styles.statusButtonAnniversary} ${isAnniversary ? styles.statusButtonActiveAnniversary : ''}`}
+                      onClick={() => {
+                        const current = dateInfos.find(d => d.date === selectedDate);
+                        handleDateInfoChange(selectedDate, !!current?.isDate, undefined, undefined, !isAnniversary);
+                      }}
+                    >
+                      {isAnniversary ? '記念日' : '記念日にする'}
+                    </button>
+                    {isAnniversary && (
+                      <input
+                        type="text"
+                        className={styles.anniversaryInput}
+                        placeholder="何の記念日ですか？"
+                        value={sourceAnniv.anniversaryName || ''}
+                        onChange={(e) => handleDateInfoChange(selectedDate, !!dateInfos.find(d => d.date === selectedDate)?.isDate, undefined, undefined, true, e.target.value)}
+                      />
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </>
