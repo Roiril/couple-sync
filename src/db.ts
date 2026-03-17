@@ -44,6 +44,8 @@ export interface DateInfo {
     isDate: boolean;
     status?: 'confirmed' | 'tentative' | null;
     timeText?: string;
+    isAnniversary?: boolean;
+    anniversaryName?: string;
     isDeleted?: boolean;
     isDirty?: boolean;
     createdAt: number;
@@ -355,6 +357,8 @@ async function pushDateInfoRaw(info: DateInfo) {
             is_date: info.isDate,
             status: info.status,
             time_text: info.timeText,
+            is_anniversary: info.isAnniversary,
+            anniversary_name: info.anniversaryName,
             is_deleted: info.isDeleted,
             created_at: info.createdAt,
             updated_at: info.updatedAt
@@ -489,6 +493,8 @@ export async function syncFromSupabase() {
                         isDate: r.is_date,
                         status: r.status,
                         timeText: r.time_text,
+                        isAnniversary: r.is_anniversary,
+                        anniversaryName: r.anniversary_name,
                         isDeleted: r.is_deleted,
                         isDirty: false,
                         createdAt: r.created_at,

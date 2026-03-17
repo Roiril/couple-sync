@@ -101,7 +101,14 @@ function App() {
     });
   };
 
-  const handleDateInfoChange = async (dateAtTimeOfRender: string, isDate: boolean, status?: 'confirmed' | 'tentative', timeText?: string) => {
+  const handleDateInfoChange = async (
+    dateAtTimeOfRender: string, 
+    isDate: boolean, 
+    status?: 'confirmed' | 'tentative', 
+    timeText?: string,
+    isAnniversary?: boolean,
+    anniversaryName?: string
+  ) => {
     const existingIndex = dateInfos.findIndex(d => d.date === dateAtTimeOfRender);
     const existing = existingIndex >= 0 ? dateInfos[existingIndex] : null;
     
@@ -111,6 +118,8 @@ function App() {
       isDate,
       status: status !== undefined ? status : (isDate ? (existing?.status || null) : null),
       timeText: timeText !== undefined ? timeText : existing?.timeText || '',
+      isAnniversary: isAnniversary !== undefined ? isAnniversary : existing?.isAnniversary || false,
+      anniversaryName: anniversaryName !== undefined ? anniversaryName : existing?.anniversaryName || '',
       createdAt: existing ? existing.createdAt : Date.now(),
       updatedAt: Date.now()
     };
@@ -222,7 +231,10 @@ function App() {
 
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const isSelected = selectedDate === dateStr;
-            const hasDateInfo = dateInfos.find(d => d.date === dateStr)?.isDate;
+            const dateInfo = dateInfos.find(d => d.date === dateStr);
+            const hasDateInfo = dateInfo?.isDate;
+            const monthDay = dateStr.slice(5); // MM-DD
+            const isAnniversary = dateInfos.some(info => info.isAnniversary && info.date.endsWith(monthDay));
 
             return (
               <div
@@ -234,7 +246,7 @@ function App() {
                 }}
               >
                 <div className={hasDateInfo ? styles.todayCircle : ''}>
-                  {hasDateInfo && (
+                  {hasDateInfo && !isAnniversary && (
                     <svg 
                       className={`${styles.todaySvg} ${dateInfos.find(d => d.date === dateStr)?.status === 'tentative' ? styles.tentativeDate : ''}`} 
                       viewBox="-20 0 730 540" 
@@ -244,6 +256,31 @@ function App() {
                         <path d="M 170,410 C 70,320 65,150 230,80 C 410,15 565,85 565,220 C 565,345 460,455 310,515 C 220,545 140,555 85,560 C 140,545 220,515 295,485 C 440,420 535,325 535,220 C 535,110 395,45 240,100 C 105,150 100,305 185,400 Z" />
                       </g>
                     </svg>
+                  )}
+                  {isAnniversary && (
+                    (() => {
+                      const annivColorClass = dateInfo?.status === 'confirmed'
+                        ? styles.anniversarySvgConfirmed
+                        : dateInfo?.status === 'tentative'
+                          ? styles.anniversarySvgTentative
+                          : styles.anniversarySvgDefault;
+                      return (
+                        <div className={styles.anniversaryOverlay}>
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className={`${styles.anniversarySvg} ${annivColorClass}`}>
+                              <g transform="translate(0, 0)" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="50" cy="60" r="22" />
+                                  <path d="M70,55 
+                                          C85,40 100,70 80,75 
+                                          C90,95 65,105 55,85 
+                                          C45,105 15,95 25,75 
+                                          C5,70 5,40 25,45 
+                                          C15,25 45,15 50,35 
+                                          C60,15 90,25 75,45" />
+                              </g>
+                          </svg>
+                        </div>
+                      );
+                    })()
                   )}
                   <span className={styles.dayNumber}>{day}</span>
                 </div>
@@ -348,6 +385,27 @@ function App() {
                   value={schedules.find(s => s.date === selectedDate && s.userId === 'hina')?.content || ''}
                   onChange={(e) => handleScheduleChange('hina', e.target.value, selectedDate)}
                 />
+              </div>
+
+              <div className={styles.anniversaryRow}>
+                <button
+                  className={`${styles.statusButton} ${styles.statusButtonAnniversary} ${dateInfos.find(d => d.date === selectedDate)?.isAnniversary ? styles.statusButtonActiveAnniversary : ''}`}
+                  onClick={() => {
+                    const current = dateInfos.find(d => d.date === selectedDate);
+                    handleDateInfoChange(selectedDate, !!current?.isDate, undefined, undefined, !current?.isAnniversary);
+                  }}
+                >
+                  {dateInfos.find(d => d.date === selectedDate)?.isAnniversary ? '記念日' : '記念日にする'}
+                </button>
+                {dateInfos.find(d => d.date === selectedDate)?.isAnniversary && (
+                  <input
+                    type="text"
+                    className={styles.anniversaryInput}
+                    placeholder="何の記念日ですか？"
+                    value={dateInfos.find(d => d.date === selectedDate)?.anniversaryName || ''}
+                    onChange={(e) => handleDateInfoChange(selectedDate, !!dateInfos.find(d => d.date === selectedDate)?.isDate, undefined, undefined, true, e.target.value)}
+                  />
+                )}
               </div>
             </div>
           )}
