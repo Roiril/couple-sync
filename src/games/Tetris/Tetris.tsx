@@ -22,14 +22,13 @@ const PixelRight = () => (
   </svg>
 );
 
-const PixelHardDrop = () => (
+const PixelDown = () => (
   <svg viewBox="0 0 15 15" width="36" height="36" fill="currentColor" shapeRendering="crispEdges">
     <rect x="5" y="2" width="4" height="7" />
     <rect x="3" y="9" width="8" height="1" />
     <rect x="4" y="10" width="6" height="1" />
     <rect x="5" y="11" width="4" height="1" />
     <rect x="6" y="12" width="2" height="1" />
-    <rect x="2" y="14" width="10" height="1" />
   </svg>
 );
 
@@ -297,6 +296,47 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     window.history.back();
   }, []);
 
+  // 連続入力（DAS/ARR）の制御
+  const useRepeatAction = (action: () => void) => {
+    const actionRef = useRef(action);
+    actionRef.current = action;
+    const timerRef = useRef<number | null>(null);
+    const intervalRef = useRef<number | null>(null);
+
+    const stop = useCallback(() => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+      timerRef.current = null;
+      intervalRef.current = null;
+    }, []);
+
+    const start = useCallback((e: React.PointerEvent) => {
+      if (playerInfo.gameOver) return;
+      e.preventDefault();
+      stop();
+      actionRef.current();
+      timerRef.current = window.setTimeout(() => {
+        intervalRef.current = window.setInterval(() => {
+          actionRef.current();
+        }, 60); // ARR: 60ms
+      }, 200); // DAS: 200ms
+    }, [stop, playerInfo.gameOver]);
+
+    useEffect(() => stop, [stop]);
+
+    return {
+      onPointerDown: start,
+      onPointerUp: stop,
+      onPointerLeave: stop,
+      onPointerCancel: stop,
+    };
+  };
+
+  const leftHandlers = useRepeatAction(() => updatePlayerPos({ x: -1, y: 0 }));
+  const rightHandlers = useRepeatAction(() => updatePlayerPos({ x: 1, y: 0 }));
+  const downHandlers = useRepeatAction(drop);
+  const rotateHandlers = useRepeatAction(rotate);
+
   const renderGrid = () => {
     const grid = board.map(row => [...row]);
     if (!playerInfo.gameOver) {
@@ -361,25 +401,25 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
       <div className={styles.controls}>
         <button
           className={`${styles.btn} ${styles.btnLeft}`}
-          onPointerDown={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}
+          {...leftHandlers}
         >
           <PixelLeft />
         </button>
         <button
           className={`${styles.btn} ${styles.btnRight}`}
-          onPointerDown={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}
+          {...rightHandlers}
         >
           <PixelRight />
         </button>
         <button
-          className={`${styles.btn} ${styles.btnHardDrop}`}
-          onPointerDown={(e) => { e.preventDefault(); hardDrop(); }}
+          className={`${styles.btn} ${styles.btnDown}`}
+          {...downHandlers}
         >
-          <PixelHardDrop />
+          <PixelDown />
         </button>
         <button
           className={`${styles.btn} ${styles.btnRotate}`}
-          onPointerDown={(e) => { e.preventDefault(); rotate(); }}
+          {...rotateHandlers}
         >
           <PixelRotate />
         </button>
