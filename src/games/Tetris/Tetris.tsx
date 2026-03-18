@@ -206,7 +206,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     }
   }, [dropTime]);
 
-  const rotate = () => {
+  const rotate = useCallback(() => {
     if (playerInfo.gameOver) return;
     const rotated = playerInfo.tetromino[0].map((_, index) =>
       playerInfo.tetromino.map(col => col[index]).reverse()
@@ -214,7 +214,43 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     if (!checkCollision(rotated, playerInfo.pos, board)) {
       setPlayerInfo(prev => ({ ...prev, tetromino: rotated }));
     }
-  };
+  }, [playerInfo, board]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (playerInfo.gameOver) return;
+
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        updatePlayerPos({ x: -1, y: 0 });
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        updatePlayerPos({ x: 1, y: 0 });
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        updatePlayerPos({ x: 0, y: 1 });
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        rotate();
+        break;
+      case ' ':
+        e.preventDefault();
+        hardDrop();
+        break;
+      default:
+        break;
+    }
+  }, [playerInfo.gameOver, updatePlayerPos, rotate, hardDrop]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   const startGame = () => {
     setBoard(createEmptyBoard());
@@ -315,16 +351,32 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
       )}
 
       <div className={styles.controls}>
-        <button className={`${styles.btn} ${styles.btnLeft}`} onClick={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}>
+        <button
+          className={`${styles.btn} ${styles.btnLeft}`}
+          onMouseDown={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}
+          onTouchStart={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}
+        >
           <PixelLeft />
         </button>
-        <button className={`${styles.btn} ${styles.btnRight}`} onClick={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}>
+        <button
+          className={`${styles.btn} ${styles.btnRight}`}
+          onMouseDown={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}
+          onTouchStart={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}
+        >
           <PixelRight />
         </button>
-        <button className={`${styles.btn} ${styles.btnHardDrop}`} onClick={(e) => { e.preventDefault(); hardDrop(); }}>
+        <button
+          className={`${styles.btn} ${styles.btnHardDrop}`}
+          onMouseDown={(e) => { e.preventDefault(); hardDrop(); }}
+          onTouchStart={(e) => { e.preventDefault(); hardDrop(); }}
+        >
           <PixelHardDrop />
         </button>
-        <button className={`${styles.btn} ${styles.btnRotate}`} onClick={(e) => { e.preventDefault(); rotate(); }}>
+        <button
+          className={`${styles.btn} ${styles.btnRotate}`}
+          onMouseDown={(e) => { e.preventDefault(); rotate(); }}
+          onTouchStart={(e) => { e.preventDefault(); rotate(); }}
+        >
           <PixelRotate />
         </button>
       </div>
