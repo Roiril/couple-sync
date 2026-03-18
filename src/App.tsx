@@ -3,11 +3,13 @@ import { Calendar as CalendarIcon, Heart, Gamepad2 } from 'lucide-react';
 import styles from './App.module.css';
 import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase } from './db';
 import Tetris from './games/Tetris/Tetris';
+import { fetchHighScore } from './games/highScoreApi';
 
 function App() {
   // ... (state definitions)
   const [viewMode, setViewMode] = useState<'monthly' | 'anniversary' | 'minigame'>('monthly');
   const [selectedMiniGame, setSelectedMiniGame] = useState<'tetris' | null>(null);
+  const [tetrisBestScore, setTetrisBestScore] = useState<number>(0);
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
 
   const [dragOffset, setDragOffset] = useState(0);
@@ -68,6 +70,12 @@ function App() {
       loadSchedules(selectedDate);
     }
   }, [selectedDate]);
+
+  useEffect(() => {
+    if (viewMode === 'minigame') {
+      fetchHighScore('tetris').then(setTetrisBestScore).catch(() => {});
+    }
+  }, [viewMode]);
 
   const loadSchedules = async (dateStr: string) => {
     const data = await getDailySchedules(dateStr);
@@ -516,6 +524,11 @@ function App() {
               <div className={styles.anniversaryName} style={{ fontSize: '1.2rem', letterSpacing: '0.1em' }}>
                 Tetris
               </div>
+              {tetrisBestScore > 0 && (
+                <div className={styles.miniGameBestScore}>
+                  BEST: {tetrisBestScore}
+                </div>
+              )}
             </div>
             <Gamepad2 size={80} className={styles.anniversaryItemIcon} />
           </div>

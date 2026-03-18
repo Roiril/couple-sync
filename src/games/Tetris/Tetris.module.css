@@ -62,6 +62,27 @@
   text-shadow: 0 2px 10px rgba(255, 222, 173, 0.3);
 }
 
+.pauseBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: transparent;
+  border: none;
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pauseBtn:active {
+  opacity: 0.7;
+  transform: scale(0.92);
+}
+
 .scoreRow {
   display: flex;
   gap: 8px;
@@ -199,6 +220,9 @@
   touch-action: manipulation;
   transition: transform 0.15s ease, background 0.15s ease;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .btn svg {
@@ -256,6 +280,13 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   text-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+}
+
+.finalScore {
+  font-family: 'DotGothic16', monospace;
+  font-size: 1.4rem;
+  color: #fff;
+  margin-bottom: 32px;
 }
 
 .restartBtn {

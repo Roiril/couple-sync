@@ -48,6 +48,24 @@ const PixelRotate = () => (
   </svg>
 );
 
+const PixelPause = () => (
+  <svg viewBox="0 0 15 15" width="24" height="24" fill="currentColor" shapeRendering="crispEdges">
+    <rect x="4" y="3" width="2" height="9" />
+    <rect x="9" y="3" width="2" height="9" />
+  </svg>
+);
+
+const PixelPlay = () => (
+  <svg viewBox="0 0 15 15" width="24" height="24" fill="currentColor" shapeRendering="crispEdges">
+    <rect x="4" y="2" width="1" height="11" />
+    <rect x="5" y="3" width="1" height="9" />
+    <rect x="6" y="4" width="1" height="7" />
+    <rect x="7" y="5" width="1" height="5" />
+    <rect x="8" y="6" width="1" height="3" />
+    <rect x="9" y="7" width="1" height="1" />
+  </svg>
+);
+
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 
@@ -85,6 +103,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     score: 0,
     gameOver: false,
   });
+  const [isPaused, setIsPaused] = useState(false);
   const [dropTime, setDropTime] = useState<number | null>(null);
   const [highScore, setHighScore] = useState<number>(0);
 
@@ -170,7 +189,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     } else if (offset.y > 0) {
       mergeToBoard();
     }
-  }, [board, playerInfo.pos, playerInfo.tetromino, mergeToBoard]);
+  }, [board, playerInfo.pos, playerInfo.tetromino, mergeToBoard, isPaused, playerInfo.gameOver]);
 
   const drop = useCallback(() => {
     updatePlayerPos({ x: 0, y: 1 });
@@ -198,13 +217,13 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
   }, [drop]);
 
   useEffect(() => {
-    if (dropTime !== null) {
+    if (dropTime !== null && !isPaused && !playerInfo.gameOver) {
       const id = setInterval(() => {
         savedCallback.current && savedCallback.current();
       }, dropTime);
       return () => clearInterval(id);
     }
-  }, [dropTime]);
+  }, [dropTime, isPaused, playerInfo.gameOver]);
 
   const rotate = useCallback(() => {
     if (playerInfo.gameOver) return;
@@ -214,10 +233,10 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     if (!checkCollision(rotated, playerInfo.pos, board)) {
       setPlayerInfo(prev => ({ ...prev, tetromino: rotated }));
     }
-  }, [playerInfo, board]);
+  }, [playerInfo, board, isPaused]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (playerInfo.gameOver) return;
+    if (playerInfo.gameOver || isPaused) return;
 
     switch (e.key) {
       case 'ArrowLeft':
@@ -243,7 +262,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
       default:
         break;
     }
-  }, [playerInfo.gameOver, updatePlayerPos, rotate, hardDrop]);
+  }, [playerInfo.gameOver, isPaused, updatePlayerPos, rotate, hardDrop]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -264,6 +283,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
       gameOver: false,
     });
     setDropTime(1000);
+    setIsPaused(false);
   };
 
   useEffect(() => {
@@ -311,7 +331,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     }, []);
 
     const start = useCallback((e: React.PointerEvent) => {
-      if (playerInfo.gameOver) return;
+      if (playerInfo.gameOver || isPaused) return;
       e.preventDefault();
       stop();
       actionRef.current();
@@ -320,7 +340,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
           actionRef.current();
         }, 60); // ARR: 60ms
       }, 200); // DAS: 200ms
-    }, [stop, playerInfo.gameOver]);
+    }, [stop, playerInfo.gameOver, isPaused]);
 
     useEffect(() => stop, [stop]);
 
@@ -371,6 +391,9 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
             &lt;
           </button>
           <div className={styles.title}>Tetris</div>
+          <button className={styles.pauseBtn} onClick={() => setIsPaused(!isPaused)}>
+            {isPaused ? <PixelPlay /> : <PixelPause />}
+          </button>
         </div>
         <div className={styles.scoreRow}>
           <div className={styles.scoreContainer}>
@@ -393,6 +416,7 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
       {playerInfo.gameOver && (
         <div className={styles.overlay}>
           <div className={styles.gameOverText}>Game Over</div>
+          <div className={styles.finalScore}>Score: {playerInfo.score}</div>
           <button className={styles.restartBtn} onClick={startGame}>&lt;&lt; RESTART &gt;&gt;</button>
           <button className={styles.quitBtn} onClick={handleBackAction}>&lt;&lt; QUIT &gt;&gt;</button>
         </div>
@@ -406,16 +430,16 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
           <PixelLeft />
         </button>
         <button
-          className={`${styles.btn} ${styles.btnRight}`}
-          {...rightHandlers}
-        >
-          <PixelRight />
-        </button>
-        <button
           className={`${styles.btn} ${styles.btnDown}`}
           {...downHandlers}
         >
           <PixelDown />
+        </button>
+        <button
+          className={`${styles.btn} ${styles.btnRight}`}
+          {...rightHandlers}
+        >
+          <PixelRight />
         </button>
         <button
           className={`${styles.btn} ${styles.btnRotate}`}
