@@ -189,7 +189,8 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
   // Handle speed increase
   useEffect(() => {
     if (playerInfo.score > 0) {
-      setDropTime(1000 / (playerInfo.score / 500 + 1));
+      const speedMultiplier = Math.pow(1.1, playerInfo.score / 500);
+      setDropTime(1000 / Math.min(speedMultiplier, 2));
     }
   }, [playerInfo.score]);
 
