@@ -29,6 +29,11 @@
   src: url('/fonts/NotoEmoji-VariableFont_wght.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'DotGothic16';
+  src: url('/fonts/DotGothic16-Regular.ttf') format('truetype');
+}
+
 html,
 body {
   background-color: var(--bg-color);

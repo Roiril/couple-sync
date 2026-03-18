@@ -2,10 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, Heart, Gamepad2 } from 'lucide-react';
 import styles from './App.module.css';
 import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase } from './db';
+import Tetris from './games/Tetris/Tetris';
 
 function App() {
   // ... (state definitions)
   const [viewMode, setViewMode] = useState<'monthly' | 'anniversary' | 'minigame'>('monthly');
+  const [selectedMiniGame, setSelectedMiniGame] = useState<'tetris' | null>(null);
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
 
   const [dragOffset, setDragOffset] = useState(0);
@@ -337,7 +339,9 @@ function App() {
       onTouchEnd={handleTouchEnd}
       onClick={() => setSelectedDate(null)}
     >
-      <div className={styles.yearLabel}>{displayMonth.getFullYear()}</div>
+      {viewMode !== 'minigame' && (
+        <div className={styles.yearLabel}>{displayMonth.getFullYear()}</div>
+      )}
       {viewMode === 'monthly' ? (
         <>
           <div className={styles.swipeWrapper} style={{ opacity: isSyncing ? 0.5 : 1, transition: 'opacity 0.3s', pointerEvents: isSyncing ? 'none' : 'auto' }}>
@@ -494,41 +498,56 @@ function App() {
             </div>
           )}
         </div>
+      ) : selectedMiniGame === 'tetris' ? (
+        <Tetris onBack={() => setSelectedMiniGame(null)} />
       ) : (
-        <div className={styles.emptyState}>
-          <Gamepad2 size={48} strokeWidth={1.5} style={{ marginBottom: '16px', opacity: 0.5 }} />
-          <div>ミニゲーム</div>
+        <div className={styles.anniversaryList}>
+          <div className={styles.anniversaryTitle}>Mini Games</div>
+          
+          <div className={styles.anniversaryItem} onClick={() => setSelectedMiniGame('tetris')} style={{ cursor: 'pointer' }}>
+            <div className={styles.anniversaryDateContainer}>
+              <div className={styles.anniversaryDayLarge} style={{ fontSize: '1rem' }}>Play</div>
+            </div>
+            <div className={styles.anniversaryContent}>
+              <div className={styles.anniversaryName} style={{ fontSize: '1.2rem', letterSpacing: '0.1em' }}>
+                Tetris
+              </div>
+            </div>
+            <Gamepad2 size={80} className={styles.anniversaryItemIcon} />
+          </div>
         </div>
       )}
 
       {/* Bottom Navigation Banner */}
-      <div className={styles.bottomNav}>
-        <div className={styles.navInner}>
-          <button
-            onClick={() => setViewMode('monthly')}
-            className={viewMode === 'monthly' ? styles.navButtonActive : styles.navButton}
-          >
-            <CalendarIcon size={24} strokeWidth={1.5} />
-            <span className={styles.navLabel}>マンスリー</span>
-          </button>
+      {selectedMiniGame !== 'tetris' && (
+        <div className={styles.bottomNav}>
+          <div className={styles.navInner}>
+            <button
+              onClick={() => setViewMode('monthly')}
+              className={viewMode === 'monthly' ? styles.navButtonActive : styles.navButton}
+            >
+              <CalendarIcon size={24} strokeWidth={1.5} />
+              <span className={styles.navLabel}>マンスリー</span>
+            </button>
 
-          <button
-            onClick={() => setViewMode('anniversary')}
-            className={viewMode === 'anniversary' ? styles.navButtonActive : styles.navButton}
-          >
-            <Heart size={24} strokeWidth={1.5} />
-            <span className={styles.navLabel}>アニバーサリー</span>
-          </button>
+            <button
+              onClick={() => setViewMode('anniversary')}
+              className={viewMode === 'anniversary' ? styles.navButtonActive : styles.navButton}
+            >
+              <Heart size={24} strokeWidth={1.5} />
+              <span className={styles.navLabel}>アニバーサリー</span>
+            </button>
 
-          <button
-            onClick={() => setViewMode('minigame')}
-            className={viewMode === 'minigame' ? styles.navButtonActive : styles.navButton}
-          >
-            <Gamepad2 size={24} strokeWidth={1.5} />
-            <span className={styles.navLabel}>ミニゲーム</span>
-          </button>
+            <button
+              onClick={() => setViewMode('minigame')}
+              className={viewMode === 'minigame' ? styles.navButtonActive : styles.navButton}
+            >
+              <Gamepad2 size={24} strokeWidth={1.5} />
+              <span className={styles.navLabel}>ミニゲーム</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
