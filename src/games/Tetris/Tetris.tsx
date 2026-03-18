@@ -233,7 +233,10 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
   useEffect(() => {
     startGame();
     fetchHighScore('tetris').then(s => setHighScore(s)).catch(() => { });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
     // スワイプ戻る・ハードウェア戻るキーへの対応
     window.history.pushState({ page: 'tetris' }, '', window.location.href);
     const handlePopState = () => {
