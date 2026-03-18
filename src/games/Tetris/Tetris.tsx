@@ -233,6 +233,21 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
   useEffect(() => {
     startGame();
     fetchHighScore('tetris').then(s => setHighScore(s)).catch(() => { });
+
+    // スワイプ戻る・ハードウェア戻るキーへの対応
+    window.history.pushState({ page: 'tetris' }, '', window.location.href);
+    const handlePopState = () => {
+      onBack();
+    };
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [onBack]);
+
+  const handleBackAction = useCallback(() => {
+    window.history.back();
   }, []);
 
   const renderGrid = () => {
@@ -265,14 +280,8 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleArea}>
-          <button className={styles.backBtn} onClick={onBack}>
-            <svg viewBox="0 0 15 15" width="24" height="24" fill="currentColor" shapeRendering="crispEdges">
-              <rect x="6" y="5" width="7" height="4" />
-              <rect x="5" y="3" width="1" height="8" />
-              <rect x="4" y="4" width="1" height="6" />
-              <rect x="3" y="5" width="1" height="4" />
-              <rect x="2" y="6" width="1" height="2" />
-            </svg>
+          <button className={styles.backBtn} onClick={handleBackAction}>
+            &lt;
           </button>
           <div className={styles.title}>Tetris</div>
         </div>
@@ -298,26 +307,23 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
         <div className={styles.overlay}>
           <div className={styles.gameOverText}>Game Over</div>
           <button className={styles.restartBtn} onClick={startGame}>&lt;&lt; RESTART &gt;&gt;</button>
+          <button className={styles.quitBtn} onClick={handleBackAction}>&lt;&lt; QUIT &gt;&gt;</button>
         </div>
       )}
 
       <div className={styles.controls}>
-        <div className={styles.leftControls}>
-          <button className={`${styles.btn} ${styles.btnLeft}`} onClick={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}>
-            <PixelLeft />
-          </button>
-          <button className={`${styles.btn} ${styles.btnRight}`} onClick={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}>
-            <PixelRight />
-          </button>
-        </div>
-        <div className={styles.rightControls}>
-          <button className={`${styles.btn} ${styles.btnHardDrop}`} onClick={(e) => { e.preventDefault(); hardDrop(); }}>
-            <PixelHardDrop />
-          </button>
-          <button className={`${styles.btn} ${styles.btnRotate}`} onClick={(e) => { e.preventDefault(); rotate(); }}>
-            <PixelRotate />
-          </button>
-        </div>
+        <button className={`${styles.btn} ${styles.btnLeft}`} onClick={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}>
+          <PixelLeft />
+        </button>
+        <button className={`${styles.btn} ${styles.btnRight}`} onClick={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}>
+          <PixelRight />
+        </button>
+        <button className={`${styles.btn} ${styles.btnHardDrop}`} onClick={(e) => { e.preventDefault(); hardDrop(); }}>
+          <PixelHardDrop />
+        </button>
+        <button className={`${styles.btn} ${styles.btnRotate}`} onClick={(e) => { e.preventDefault(); rotate(); }}>
+          <PixelRotate />
+        </button>
       </div>
     </div>
   );
