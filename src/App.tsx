@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Calendar as CalendarIcon, Heart, Gamepad2 } from 'lucide-react';
 import styles from './App.module.css';
 import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase } from './db';
@@ -21,6 +21,10 @@ function App() {
   const [schedules, setSchedules] = useState<DailySchedule[]>([]);
   const [dateInfos, setDateInfos] = useState<DateInfo[]>([]);
   const [isSyncing, setIsSyncing] = useState(true);
+
+  const handleMiniGameBack = useCallback(() => {
+    setSelectedMiniGame(null);
+  }, []);
 
   // Keep ref in sync with state so Realtime callbacks always see current value
   useEffect(() => {
@@ -499,7 +503,7 @@ function App() {
           )}
         </div>
       ) : selectedMiniGame === 'tetris' ? (
-        <Tetris onBack={() => setSelectedMiniGame(null)} />
+        <Tetris onBack={handleMiniGameBack} />
       ) : (
         <div className={styles.anniversaryList}>
           <div className={styles.anniversaryTitle}>Mini Games</div>

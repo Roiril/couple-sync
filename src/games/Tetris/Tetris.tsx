@@ -272,18 +272,25 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const onBackRef = useRef(onBack);
+  useEffect(() => {
+    onBackRef.current = onBack;
+  }, [onBack]);
+
   useEffect(() => {
     // スワイプ戻る・ハードウェア戻るキーへの対応
+    // マウント時に一度だけ履歴を追加する
     window.history.pushState({ page: 'tetris' }, '', window.location.href);
+    
     const handlePopState = () => {
-      onBack();
+      onBackRef.current();
     };
     window.addEventListener('popstate', handlePopState);
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [onBack]);
+  }, []); // 空の依存配列で一度だけ実行を担保
 
   const handleBackAction = useCallback(() => {
     window.history.back();
