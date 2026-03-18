@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar as CalendarIcon, ClipboardPen } from 'lucide-react';
+import { Calendar as CalendarIcon, Heart, Gamepad2 } from 'lucide-react';
 import styles from './App.module.css';
 import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase } from './db';
 
 function App() {
   // ... (state definitions)
-  const [viewMode, setViewMode] = useState<'monthly' | 'setting'>('monthly');
+  const [viewMode, setViewMode] = useState<'monthly' | 'anniversary' | 'minigame'>('monthly');
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
 
   const [dragOffset, setDragOffset] = useState(0);
@@ -452,10 +452,52 @@ function App() {
             </div>
           )}
         </>
+      ) : viewMode === 'anniversary' ? (
+        <div className={styles.anniversaryList}>
+          <div className={styles.anniversaryTitle}>Anniversaries</div>
+          {dateInfos
+            .filter(info => info.isAnniversary)
+            .sort((a, b) => {
+              const aMonth = parseInt(a.date.split('-')[1]);
+              const aDay = parseInt(a.date.split('-')[2]);
+              const bMonth = parseInt(b.date.split('-')[1]);
+              const bDay = parseInt(b.date.split('-')[2]);
+              if (aMonth !== bMonth) return aMonth - bMonth;
+              return aDay - bDay;
+            })
+            .map(info => {
+              const month = parseInt(info.date.split('-')[1]);
+              const day = parseInt(info.date.split('-')[2]);
+              return (
+                <div key={info.id} className={styles.anniversaryItem}>
+                  <div className={styles.anniversaryDateContainer}>
+                    <div className={styles.anniversaryDayLarge}>{month}/{day}</div>
+                  </div>
+                  <div className={styles.anniversaryContent}>
+                    <div className={styles.anniversaryName}>
+                      {info.anniversaryName || '無題の記念日'}
+                    </div>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className={styles.anniversaryItemIcon}>
+                    <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="50" cy="60" r="22" />
+                      <path d="M70,55 C85,40 100,70 80,75 C90,95 65,105 55,85 C45,105 15,95 25,75 C5,70 5,40 25,45 C15,25 45,15 50,35 C60,15 90,25 75,45" />
+                    </g>
+                  </svg>
+                </div>
+              );
+            })}
+          {dateInfos.filter(info => info.isAnniversary).length === 0 && (
+            <div className={styles.emptyState}>
+              <Heart size={48} strokeWidth={1.5} style={{ marginBottom: '16px', opacity: 0.5 }} />
+              <div>記念日がまだありません</div>
+            </div>
+          )}
+        </div>
       ) : (
         <div className={styles.emptyState}>
-          <ClipboardPen size={48} strokeWidth={1.5} style={{ marginBottom: '16px', opacity: 0.5 }} />
-          <div>Settings</div>
+          <Gamepad2 size={48} strokeWidth={1.5} style={{ marginBottom: '16px', opacity: 0.5 }} />
+          <div>ミニゲーム</div>
         </div>
       )}
 
@@ -467,15 +509,23 @@ function App() {
             className={viewMode === 'monthly' ? styles.navButtonActive : styles.navButton}
           >
             <CalendarIcon size={24} strokeWidth={1.5} />
-            <span className={styles.navLabel}>Monthly</span>
+            <span className={styles.navLabel}>マンスリー</span>
           </button>
 
           <button
-            onClick={() => setViewMode('setting')}
-            className={viewMode === 'setting' ? styles.navButtonActive : styles.navButton}
+            onClick={() => setViewMode('anniversary')}
+            className={viewMode === 'anniversary' ? styles.navButtonActive : styles.navButton}
           >
-            <ClipboardPen size={24} strokeWidth={1.5} />
-            <span className={styles.navLabel}>Settings</span>
+            <Heart size={24} strokeWidth={1.5} />
+            <span className={styles.navLabel}>アニバーサリー</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('minigame')}
+            className={viewMode === 'minigame' ? styles.navButtonActive : styles.navButton}
+          >
+            <Gamepad2 size={24} strokeWidth={1.5} />
+            <span className={styles.navLabel}>ミニゲーム</span>
           </button>
         </div>
       </div>

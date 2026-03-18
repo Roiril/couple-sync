@@ -193,7 +193,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   border-right: 1px solid rgba(255, 222, 173, 0.2);
   border-bottom: 1px solid rgba(255, 222, 173, 0.2);
   position: relative;
@@ -256,7 +256,7 @@
 }
 
 .monthLabel {
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   font-weight: 400;
   letter-spacing: 0.05em;
 }
@@ -487,4 +487,86 @@
   stroke: #F23D47;
   stroke-dasharray: 6 4;
   opacity: 0.7;
+}
+
+/* Anniversary List Redesign */
+.anniversaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 40px 24px 100px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.anniversaryTitle {
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--text-color);
+  opacity: 0.9;
+}
+
+.anniversaryItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+  overflow: hidden;
+}
+
+.anniversaryItem:active {
+  transform: scale(0.98);
+}
+
+.anniversaryDateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  margin-right: 16px;
+  padding-right: 10px;
+}
+
+.anniversaryDayLarge {
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 1.4rem;
+  color: var(--accent-color);
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+
+.anniversaryContent {
+  flex: 1;
+}
+
+.anniversaryName {
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  letter-spacing: 0.02em;
+}
+
+.anniversaryItemIcon {
+  position: absolute;
+  right: -10px;
+  bottom: -15px;
+  width: 80px;
+  height: 80px;
+  opacity: 0.08;
+  transform: rotate(-15deg);
+  pointer-events: none;
 }
