@@ -353,29 +353,25 @@ const Tetris: React.FC<TetrisProps> = ({ onBack }) => {
       <div className={styles.controls}>
         <button
           className={`${styles.btn} ${styles.btnLeft}`}
-          onMouseDown={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}
-          onTouchStart={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}
+          onPointerDown={(e) => { e.preventDefault(); updatePlayerPos({ x: -1, y: 0 }); }}
         >
           <PixelLeft />
         </button>
         <button
           className={`${styles.btn} ${styles.btnRight}`}
-          onMouseDown={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}
-          onTouchStart={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}
+          onPointerDown={(e) => { e.preventDefault(); updatePlayerPos({ x: 1, y: 0 }); }}
         >
           <PixelRight />
         </button>
         <button
           className={`${styles.btn} ${styles.btnHardDrop}`}
-          onMouseDown={(e) => { e.preventDefault(); hardDrop(); }}
-          onTouchStart={(e) => { e.preventDefault(); hardDrop(); }}
+          onPointerDown={(e) => { e.preventDefault(); hardDrop(); }}
         >
           <PixelHardDrop />
         </button>
         <button
           className={`${styles.btn} ${styles.btnRotate}`}
-          onMouseDown={(e) => { e.preventDefault(); rotate(); }}
-          onTouchStart={(e) => { e.preventDefault(); rotate(); }}
+          onPointerDown={(e) => { e.preventDefault(); rotate(); }}
         >
           <PixelRotate />
         </button>
