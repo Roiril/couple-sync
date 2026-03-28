@@ -518,10 +518,10 @@ function App() {
           
           <div className={styles.memoriesItem} onClick={() => setSelectedMiniGame('tetris')} style={{ cursor: 'pointer' }}>
             <div className={styles.memoriesDateContainer}>
-              <div className={styles.memoriesDayLarge} style={{ fontSize: '1rem' }}>Play</div>
+              <div className={styles.gamePlayLabel}>Play</div>
             </div>
             <div className={styles.memoriesContent}>
-              <div className={styles.memoriesName} style={{ fontSize: '1.2rem', letterSpacing: '0.1em' }}>
+              <div className={styles.gameNameLabel}>
                 Tetris
               </div>
               {tetrisBestScore > 0 && (
