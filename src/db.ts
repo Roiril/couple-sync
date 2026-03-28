@@ -38,6 +38,21 @@ export interface DailySchedule {
     updatedAt: number;
 }
 
+export interface HealthRecord {
+    id: string; // `${date}_${userId}`
+    date: string; // 'YYYY-MM-DD'
+    userId: string; // 'taisei' | 'hina'
+    lunchText?: string;
+    dinnerText?: string;
+    sleepHours?: string;
+    woreContacts?: boolean;
+    removedContacts?: boolean;
+    isDeleted?: boolean;
+    isDirty?: boolean;
+    createdAt: number;
+    updatedAt: number;
+}
+
 export interface DateInfo {
     id: string; // 'YYYY-MM-DD'
     date: string; // 'YYYY-MM-DD'
@@ -73,6 +88,11 @@ interface CoupleSyncDB extends DBSchema {
         value: DateInfo;
         indexes: { 'by-updated': number, 'by-dirty': number };
     };
+    health_records: {
+        key: string; // date_userId
+        value: HealthRecord;
+        indexes: { 'by-updated': number, 'by-date': string, 'by-dirty': number };
+    };
     metadata: {
         key: string;
         value: any;
@@ -83,7 +103,7 @@ let dbPromise: Promise<IDBPDatabase<CoupleSyncDB>> | null = null;
 
 export function initDB() {
     if (!dbPromise) {
-        dbPromise = openDB<CoupleSyncDB>('couple-sync', 4, {
+        dbPromise = openDB<CoupleSyncDB>('couple-sync', 5, {
             upgrade(db, oldVersion, _newVersion, transaction) {
                 if (oldVersion < 3) {
                     if (!db.objectStoreNames.contains('events')) {
@@ -116,6 +136,14 @@ export function initDB() {
                         }
                     });
                 }
+                if (oldVersion < 5) {
+                    if (!db.objectStoreNames.contains('health_records')) {
+                        const store = db.createObjectStore('health_records', { keyPath: 'id' });
+                        store.createIndex('by-updated', 'updatedAt');
+                        store.createIndex('by-date', 'date');
+                        store.createIndex('by-dirty', 'isDirty');
+                    }
+                }
             },
         });
     }
@@ -124,7 +152,7 @@ export function initDB() {
 
 // --- Dirty Flag Helpers ---
 
-async function markClean(storeName: 'events' | 'proposals' | 'daily_schedules' | 'date_infos', id: string) {
+async function markClean(storeName: 'events' | 'proposals' | 'daily_schedules' | 'date_infos' | 'health_records', id: string) {
     const db = await initDB();
     const tx = db.transaction(storeName, 'readwrite');
     const record = await tx.store.get(id);
@@ -294,6 +322,26 @@ export async function saveDateInfo(info: DateInfo): Promise<void> {
     debouncedPush(`dateinfo:${updatedInfo.id}`, updatedInfo, pushDateInfoRaw);
 }
 
+// --- Health Records API ---
+
+export async function getHealthRecords(date: string): Promise<HealthRecord[]> {
+    const db = await initDB();
+    const records = await db.getAllFromIndex('health_records', 'by-date', date);
+    return records.filter(r => !r.isDeleted);
+}
+
+export async function saveHealthRecord(record: HealthRecord): Promise<void> {
+    const db = await initDB();
+    const updatedRecord = { 
+        ...record, 
+        isDeleted: record.isDeleted ?? false, 
+        isDirty: true, 
+        updatedAt: Date.now() 
+    };
+    await db.put('health_records', updatedRecord);
+    debouncedPush(`healthrecord:${updatedRecord.id}`, updatedRecord, pushHealthRecordRaw);
+}
+
 // --- Push Functions (raw) ---
 
 async function pushEventRaw(event: CoupleEvent) {
@@ -367,9 +415,29 @@ async function pushDateInfoRaw(info: DateInfo) {
     await markClean('date_infos', info.id);
 }
 
+async function pushHealthRecordRaw(record: HealthRecord) {
+    const { error } = await supabase
+        .from('health_records')
+        .upsert({
+            id: record.id,
+            date: record.date,
+            user_id: record.userId,
+            lunch_text: record.lunchText,
+            dinner_text: record.dinnerText,
+            sleep_hours: record.sleepHours,
+            wore_contacts: record.woreContacts,
+            removed_contacts: record.removedContacts,
+            is_deleted: record.isDeleted,
+            created_at: record.createdAt,
+            updated_at: record.updatedAt
+        });
+    if (error) throw error;
+    await markClean('health_records', record.id);
+}
+
 async function pushDirtyRecords() {
     const db = await initDB();
-    const stores: (keyof CoupleSyncDB)[] = ['events', 'proposals', 'daily_schedules', 'date_infos'];
+    const stores: (keyof CoupleSyncDB)[] = ['events', 'proposals', 'daily_schedules', 'date_infos', 'health_records'];
     
     for (const s of stores) {
         if (s === 'metadata') continue;
@@ -380,6 +448,7 @@ async function pushDirtyRecords() {
             if (s === 'proposals') void pushWithRetry(`proposal:${r.id}`, r, pushProposalRaw);
             if (s === 'daily_schedules') void pushWithRetry(`schedule:${r.id}`, r, pushDailyScheduleRaw);
             if (s === 'date_infos') void pushWithRetry(`dateinfo:${r.id}`, r, pushDateInfoRaw);
+            if (s === 'health_records') void pushWithRetry(`healthrecord:${r.id}`, r, pushHealthRecordRaw);
         }
     }
 }
@@ -505,6 +574,35 @@ export async function syncFromSupabase() {
             await tx.done;
         }
 
+        // Pull Health Records
+        const { data: remoteHealthRecords, error: healthRecordsError } = await supabase
+            .from('health_records')
+            .select();
+        if (healthRecordsError) throw healthRecordsError;
+        if (remoteHealthRecords && remoteHealthRecords.length > 0) {
+            const tx = db.transaction('health_records', 'readwrite');
+            for (const r of remoteHealthRecords) {
+                const local = await tx.store.get(r.id);
+                if (!local || !local.isDirty) {
+                    await tx.store.put({
+                        id: r.id,
+                        date: r.date,
+                        userId: r.user_id,
+                        lunchText: r.lunch_text,
+                        dinnerText: r.dinner_text,
+                        sleepHours: r.sleep_hours,
+                        woreContacts: r.wore_contacts,
+                        removedContacts: r.removed_contacts,
+                        isDeleted: r.is_deleted,
+                        isDirty: false,
+                        createdAt: r.created_at,
+                        updatedAt: r.updated_at
+                    });
+                }
+            }
+            await tx.done;
+        }
+
         await db.put('metadata', now, 'lastSyncedAt');
         if (retryQueue.length > 0) void flushRetryQueue();
     } catch (e) {
@@ -521,7 +619,8 @@ export function subscribeToSupabase(onUpdate: () => void) {
         'public:couple_events',
         'public:date_proposals',
         'public:daily_schedules',
-        'public:date_infos'
+        'public:date_infos',
+        'public:health_records'
     ].map(name => 
         supabase.channel(name)
             .on('postgres_changes', { event: '*', schema: 'public', table: name.split(':')[1] }, () => {

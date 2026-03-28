@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Calendar as CalendarIcon, Heart, Gamepad2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Heart, Gamepad2, Activity } from 'lucide-react';
 import styles from './App.module.css';
-import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase } from './db';
+import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase, getHealthRecords, saveHealthRecord, type HealthRecord } from './db';
 import Tetris from './games/Tetris/Tetris';
 import { fetchHighScore } from './games/highScoreApi';
 
 function App() {
   // ... (state definitions)
-  const [viewMode, setViewMode] = useState<'calendar' | 'memories' | 'games'>('calendar');
+  const [viewMode, setViewMode] = useState<'calendar' | 'memories' | 'games' | 'health'>('calendar');
   const [selectedMiniGame, setSelectedMiniGame] = useState<'tetris' | null>(null);
   const [tetrisBestScore, setTetrisBestScore] = useState<number>(0);
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
@@ -21,6 +21,7 @@ function App() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const selectedDateRef = useRef<string | null>(null);
   const [schedules, setSchedules] = useState<DailySchedule[]>([]);
+  const [healthRecords, setHealthRecords] = useState<HealthRecord[]>([]);
   const [dateInfos, setDateInfos] = useState<DateInfo[]>([]);
   const [isSyncing, setIsSyncing] = useState(true);
 
@@ -50,6 +51,9 @@ function App() {
       if (currentDate) {
         loadSchedules(currentDate);
       }
+      if (viewMode === 'health') {
+        loadHealthRecords(getTodayStr());
+      }
     });
 
     return () => unsubscribe();
@@ -65,11 +69,25 @@ function App() {
     setSchedules([]);
   }, [displayMonth]);
 
+  const getTodayStr = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     if (selectedDate) {
       loadSchedules(selectedDate);
     }
   }, [selectedDate]);
+
+  useEffect(() => {
+    if (viewMode === 'health') {
+      loadHealthRecords(getTodayStr());
+    }
+  }, [viewMode]);
 
   useEffect(() => {
     if (viewMode === 'games') {
@@ -83,6 +101,45 @@ function App() {
       // Merge new data with existing, avoiding duplicates for this date
       const filtered = prev.filter(p => p.date !== dateStr);
       return [...filtered, ...data];
+    });
+  };
+
+  const loadHealthRecords = async (dateStr: string) => {
+    const data = await getHealthRecords(dateStr);
+    setHealthRecords(prev => {
+      const filtered = prev.filter(p => p.date !== dateStr);
+      return [...filtered, ...data];
+    });
+  };
+
+  const handleHealthRecordChange = async (updates: Partial<HealthRecord>) => {
+    const today = getTodayStr();
+    const userId = 'common';
+    setHealthRecords(prev => {
+      const existingIndex = prev.findIndex(r => r.userId === userId && r.date === today);
+      const baseRecord = existingIndex >= 0 ? prev[existingIndex] : {
+        id: `${today}_${userId}`,
+        date: today,
+        userId,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      
+      const newRecord: HealthRecord = {
+        ...baseRecord,
+        ...updates,
+        updatedAt: Date.now()
+      };
+
+      const newState = [...prev];
+      if (existingIndex >= 0) {
+        newState[existingIndex] = newRecord;
+      } else {
+        newState.push(newRecord);
+      }
+
+      void saveHealthRecord(newRecord);
+      return newState;
     });
   };
 
@@ -510,6 +567,109 @@ function App() {
             </div>
           )}
         </div>
+      ) : viewMode === 'health' ? (
+        <div className={styles.healthContainer}>
+          <div className={styles.healthHeader}>
+            <div className={styles.healthTitle}>体調・生活管理</div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.7, fontFamily: "'Zen Old Mincho', serif" }}>
+              {new Date().toLocaleDateString('ja-JP')}
+            </div>
+          </div>
+          
+          <div className={styles.healthRecordsList}>
+            {(() => {
+              const today = getTodayStr();
+              const record = healthRecords.find(r => r.userId === 'common' && r.date === today) || {} as Partial<HealthRecord>;
+              return (
+                <div className={styles.healthUserCard}>
+                  <div className={styles.healthChecklist}>
+                    <label className={styles.healthCheckItem}>
+                      <div className={styles.healthCheckboxLabel}>
+                        <input 
+                          type="checkbox" 
+                          checked={!!record.lunchText}
+                          onChange={(e) => handleHealthRecordChange({ lunchText: e.target.checked ? '食べた' : '' })}
+                          className={styles.healthCheckbox}
+                        />
+                        今日は昼ごはん食べた？
+                      </div>
+                      {record.lunchText && (
+                        <input 
+                          type="text" 
+                          placeholder="食べたもの" 
+                          value={record.lunchText !== '食べた' ? record.lunchText : ''} 
+                          onChange={(e) => handleHealthRecordChange({ lunchText: e.target.value || '食べた' })}
+                          className={styles.healthTextInput}
+                        />
+                      )}
+                    </label>
+                    
+                    <label className={styles.healthCheckItem}>
+                      <div className={styles.healthCheckboxLabel}>
+                        <input 
+                          type="checkbox" 
+                          checked={!!record.dinnerText}
+                          onChange={(e) => handleHealthRecordChange({ dinnerText: e.target.checked ? '食べた' : '' })}
+                          className={styles.healthCheckbox}
+                        />
+                        今日は夜ごはん食べた？
+                      </div>
+                        {record.dinnerText && (
+                          <input 
+                            type="text" 
+                            placeholder="食べたもの" 
+                            value={record.dinnerText !== '食べた' ? record.dinnerText : ''} 
+                            onChange={(e) => handleHealthRecordChange({ dinnerText: e.target.value || '食べた' })}
+                            className={styles.healthTextInput}
+                          />
+                        )}
+                      </label>
+
+                    <label className={styles.healthCheckItem}>
+                      <div className={styles.healthCheckboxLabel}>前日の睡眠時間は？</div>
+                      <div className={styles.healthInputGroup}>
+                        <input 
+                          type="number" 
+                          step="0.5"
+                          value={record.sleepHours || ''} 
+                          onChange={(e) => handleHealthRecordChange({ sleepHours: e.target.value })}
+                          className={styles.healthNumberInput}
+                        />
+                        <span>時間</span>
+                      </div>
+                    </label>
+
+                    <div className={styles.healthDivider}></div>
+
+                    <div className={styles.healthCheckItem}>
+                      <label className={styles.healthCheckboxLabel}>
+                        <input 
+                          type="checkbox" 
+                          checked={!!record.woreContacts}
+                          onChange={(e) => handleHealthRecordChange({ woreContacts: e.target.checked })}
+                          className={styles.healthCheckbox}
+                        />
+                        今日はコンタクトつけた？
+                      </label>
+                      
+                      {record.woreContacts && (
+                        <label className={styles.healthCheckboxLabel} style={{ marginLeft: '26px', marginTop: '8px' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={!!record.removedContacts}
+                            onChange={(e) => handleHealthRecordChange({ removedContacts: e.target.checked })}
+                            className={styles.healthCheckbox}
+                          />
+                          寝る前に外した？
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       ) : selectedMiniGame === 'tetris' ? (
         <Tetris onBack={handleMiniGameBack} />
       ) : (
@@ -561,6 +721,14 @@ function App() {
             >
               <Gamepad2 size={24} strokeWidth={1.5} />
               <span className={styles.navLabel}>Games</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('health')}
+              className={viewMode === 'health' ? styles.navButtonActive : styles.navButton}
+            >
+              <Activity size={24} strokeWidth={1.5} />
+              <span className={styles.navLabel}>Health</span>
             </button>
           </div>
         </div>

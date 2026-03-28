@@ -597,3 +597,165 @@
   color: var(--text-color);
   letter-spacing: 0.1em;
 }
+
+/* Health Record Styles */
+.healthContainer {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.healthHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0px;
+}
+
+.healthTitle {
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  color: var(--text-color);
+  opacity: 0.9;
+}
+
+.healthRecordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.healthUserCard {
+  padding: 0px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.healthUserName {
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 1.1rem;
+  color: var(--accent-color);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+  padding-bottom: 8px;
+}
+
+.healthChecklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.healthCheckItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 8px;
+}
+
+.healthCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  cursor: pointer;
+  user-select: none;
+}
+
+.healthCheckbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  margin: 0;
+}
+
+.healthCheckbox:checked {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.healthCheckbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 5px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.healthTextInput {
+  margin-left: 26px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+  color: var(--text-color);
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 0.85rem;
+  padding: 4px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.healthTextInput:focus {
+  border-bottom-color: var(--accent-color);
+}
+
+.healthTextInput:disabled {
+  opacity: 0.3;
+}
+
+.healthInputGroup {
+  margin-left: 26px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.healthNumberInput {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+  color: var(--text-color);
+  font-family: 'Zen Old Mincho', serif;
+  font-size: 1rem;
+  width: 50px;
+  text-align: center;
+  padding: 2px;
+  outline: none;
+}
+
+.healthNumberInput:focus {
+  border-bottom-color: var(--accent-color);
+}
+
+.healthDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
