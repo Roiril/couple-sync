@@ -413,8 +413,8 @@
   border-bottom-color: var(--accent-color);
 }
 
-/* Anniversary */
-.anniversaryRow {
+/* Memories */
+.memoriesRow {
   padding: 2px 0;
   /* Align with user labels above */
   display: flex;
@@ -425,12 +425,12 @@
   margin-bottom: 0px;
 }
 
-.statusButtonAnniversary {
+.statusButtonMemories {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.statusButtonActiveAnniversary {
+.statusButtonActiveMemories {
   background: rgba(255, 244, 79, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-bottom: 2px solid rgba(255, 244, 79, 0.8);
@@ -442,7 +442,7 @@
   border-radius: 0;
 }
 
-.anniversaryInput {
+.memoriesInput {
   flex: 1;
   width: 100%;
   border: none;
@@ -455,7 +455,7 @@
   outline: none;
 }
 
-.anniversaryOverlay {
+.memoriesOverlay {
   position: absolute;
   top: 39%;
   left: 50%;
@@ -466,31 +466,31 @@
   z-index: 1;
 }
 
-.anniversarySvg {
+.memoriesSvg {
   width: 100%;
   height: 100%;
   opacity: 0.85;
 }
 
 /* Default: semi-transparent lemon */
-.anniversarySvgDefault g {
+.memoriesSvgDefault g {
   stroke: rgba(255, 244, 79, 0.7);
 }
 
 /* Confirmed date: solid red */
-.anniversarySvgConfirmed g {
+.memoriesSvgConfirmed g {
   stroke: #F23D47;
 }
 
 /* Tentative date: dashed red */
-.anniversarySvgTentative g {
+.memoriesSvgTentative g {
   stroke: #F23D47;
   stroke-dasharray: 6 4;
   opacity: 0.7;
 }
 
-/* Anniversary List Redesign */
-.anniversaryList {
+/* Memories List Redesign */
+.memoriesList {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -500,7 +500,7 @@
   margin: 0 auto;
 }
 
-.anniversaryTitle {
+.memoriesTitle {
   font-family: 'Zen Old Mincho', serif;
   font-size: 1.3rem;
   font-weight: 400;
@@ -511,7 +511,7 @@
   opacity: 0.9;
 }
 
-.anniversaryItem {
+.memoriesItem {
   position: relative;
   display: flex;
   align-items: center;
@@ -525,11 +525,11 @@
   overflow: hidden;
 }
 
-.anniversaryItem:active {
+.memoriesItem:active {
   transform: scale(0.98);
 }
 
-.anniversaryDateContainer {
+.memoriesDateContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -540,7 +540,7 @@
   padding-right: 10px;
 }
 
-.anniversaryDayLarge {
+.memoriesDayLarge {
   font-family: 'Zen Old Mincho', serif;
   font-size: 1.4rem;
   color: var(--accent-color);
@@ -549,7 +549,7 @@
 }
 
 
-.anniversaryContent {
+.memoriesContent {
   flex: 1;
   display: flex;
   align-items: baseline;
@@ -557,7 +557,7 @@
   overflow: hidden;
 }
 
-.anniversaryName {
+.memoriesName {
   font-family: 'Zen Old Mincho', serif;
   font-size: 0.95rem;
   color: var(--text-color);
@@ -572,7 +572,7 @@
   white-space: nowrap;
 }
 
-.anniversaryItemIcon {
+.memoriesItemIcon {
   position: absolute;
   right: -10px;
   bottom: -15px;

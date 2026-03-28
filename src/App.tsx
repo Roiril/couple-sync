@@ -7,7 +7,7 @@ import { fetchHighScore } from './games/highScoreApi';
 
 function App() {
   // ... (state definitions)
-  const [viewMode, setViewMode] = useState<'monthly' | 'anniversary' | 'minigame'>('monthly');
+  const [viewMode, setViewMode] = useState<'calendar' | 'memories' | 'games'>('calendar');
   const [selectedMiniGame, setSelectedMiniGame] = useState<'tetris' | null>(null);
   const [tetrisBestScore, setTetrisBestScore] = useState<number>(0);
   const [displayMonth, setDisplayMonth] = useState(new Date(2026, 2, 1)); // March 2026
@@ -72,7 +72,7 @@ function App() {
   }, [selectedDate]);
 
   useEffect(() => {
-    if (viewMode === 'minigame') {
+    if (viewMode === 'games') {
       fetchHighScore('tetris').then(setTetrisBestScore).catch(() => {});
     }
   }, [viewMode]);
@@ -307,14 +307,14 @@ function App() {
                   )}
                   {isAnniversary && (
                     (() => {
-                      const annivColorClass = dateInfo?.status === 'confirmed'
-                        ? styles.anniversarySvgConfirmed
+                      const memoriesColorClass = dateInfo?.status === 'confirmed'
+                        ? styles.memoriesSvgConfirmed
                         : dateInfo?.status === 'tentative'
-                          ? styles.anniversarySvgTentative
-                          : styles.anniversarySvgDefault;
+                          ? styles.memoriesSvgTentative
+                          : styles.memoriesSvgDefault;
                       return (
-                        <div className={styles.anniversaryOverlay}>
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className={`${styles.anniversarySvg} ${annivColorClass}`}>
+                        <div className={styles.memoriesOverlay}>
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className={`${styles.memoriesSvg} ${memoriesColorClass}`}>
                               <g transform="translate(0, 0)" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                   <circle cx="50" cy="60" r="22" />
                                   <path d="M70,55 
@@ -351,10 +351,10 @@ function App() {
       onTouchEnd={handleTouchEnd}
       onClick={() => setSelectedDate(null)}
     >
-      {viewMode !== 'minigame' && (
+      {viewMode !== 'games' && (
         <div className={styles.yearLabel}>{displayMonth.getFullYear()}</div>
       )}
-      {viewMode === 'monthly' ? (
+      {viewMode === 'calendar' ? (
         <>
           <div className={styles.swipeWrapper} style={{ opacity: isSyncing ? 0.5 : 1, transition: 'opacity 0.3s', pointerEvents: isSyncing ? 'none' : 'auto' }}>
             <div
@@ -443,9 +443,9 @@ function App() {
                 const isAnniversary = !!sourceAnniv;
 
                 return (
-                  <div className={styles.anniversaryRow}>
+                  <div className={styles.memoriesRow}>
                     <button
-                      className={`${styles.statusButton} ${styles.statusButtonAnniversary} ${isAnniversary ? styles.statusButtonActiveAnniversary : ''}`}
+                      className={`${styles.statusButton} ${styles.statusButtonMemories} ${isAnniversary ? styles.statusButtonActiveMemories : ''}`}
                       onClick={() => {
                         const current = dateInfos.find(d => d.date === selectedDate);
                         handleDateInfoChange(selectedDate, !!current?.isDate, undefined, undefined, !isAnniversary);
@@ -456,7 +456,7 @@ function App() {
                     {isAnniversary && (
                       <input
                         type="text"
-                        className={styles.anniversaryInput}
+                        className={styles.memoriesInput}
                         placeholder="何の記念日ですか？"
                         value={sourceAnniv.anniversaryName || ''}
                         onChange={(e) => handleDateInfoChange(selectedDate, !!dateInfos.find(d => d.date === selectedDate)?.isDate, undefined, undefined, true, e.target.value)}
@@ -468,9 +468,9 @@ function App() {
             </div>
           )}
         </>
-      ) : viewMode === 'anniversary' ? (
-        <div className={styles.anniversaryList}>
-          <div className={styles.anniversaryTitle}>Anniversaries</div>
+      ) : viewMode === 'memories' ? (
+        <div className={styles.memoriesList}>
+          <div className={styles.memoriesTitle}>Memories</div>
           {dateInfos
             .filter(info => info.isAnniversary)
             .sort((a, b) => {
@@ -485,16 +485,16 @@ function App() {
               const month = parseInt(info.date.split('-')[1]);
               const day = parseInt(info.date.split('-')[2]);
               return (
-                <div key={info.id} className={styles.anniversaryItem}>
-                  <div className={styles.anniversaryDateContainer}>
-                    <div className={styles.anniversaryDayLarge}>{month}/{day}</div>
+                <div key={info.id} className={styles.memoriesItem}>
+                  <div className={styles.memoriesDateContainer}>
+                    <div className={styles.memoriesDayLarge}>{month}/{day}</div>
                   </div>
-                  <div className={styles.anniversaryContent}>
-                    <div className={styles.anniversaryName}>
+                  <div className={styles.memoriesContent}>
+                    <div className={styles.memoriesName}>
                       {info.anniversaryName || '無題の記念日'}
                     </div>
                   </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className={styles.anniversaryItemIcon}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className={styles.memoriesItemIcon}>
                     <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="50" cy="60" r="22" />
                       <path d="M70,55 C85,40 100,70 80,75 C90,95 65,105 55,85 C45,105 15,95 25,75 C5,70 5,40 25,45 C15,25 45,15 50,35 C60,15 90,25 75,45" />
@@ -513,15 +513,15 @@ function App() {
       ) : selectedMiniGame === 'tetris' ? (
         <Tetris onBack={handleMiniGameBack} />
       ) : (
-        <div className={styles.anniversaryList}>
-          <div className={styles.anniversaryTitle}>Mini Games</div>
+        <div className={styles.memoriesList}>
+          <div className={styles.memoriesTitle}>Games</div>
           
-          <div className={styles.anniversaryItem} onClick={() => setSelectedMiniGame('tetris')} style={{ cursor: 'pointer' }}>
-            <div className={styles.anniversaryDateContainer}>
-              <div className={styles.anniversaryDayLarge} style={{ fontSize: '1rem' }}>Play</div>
+          <div className={styles.memoriesItem} onClick={() => setSelectedMiniGame('tetris')} style={{ cursor: 'pointer' }}>
+            <div className={styles.memoriesDateContainer}>
+              <div className={styles.memoriesDayLarge} style={{ fontSize: '1rem' }}>Play</div>
             </div>
-            <div className={styles.anniversaryContent}>
-              <div className={styles.anniversaryName} style={{ fontSize: '1.2rem', letterSpacing: '0.1em' }}>
+            <div className={styles.memoriesContent}>
+              <div className={styles.memoriesName} style={{ fontSize: '1.2rem', letterSpacing: '0.1em' }}>
                 Tetris
               </div>
               {tetrisBestScore > 0 && (
@@ -530,7 +530,7 @@ function App() {
                 </div>
               )}
             </div>
-            <Gamepad2 size={80} className={styles.anniversaryItemIcon} />
+            <Gamepad2 size={80} className={styles.memoriesItemIcon} />
           </div>
         </div>
       )}
@@ -540,27 +540,27 @@ function App() {
         <div className={styles.bottomNav}>
           <div className={styles.navInner}>
             <button
-              onClick={() => setViewMode('monthly')}
-              className={viewMode === 'monthly' ? styles.navButtonActive : styles.navButton}
+              onClick={() => setViewMode('calendar')}
+              className={viewMode === 'calendar' ? styles.navButtonActive : styles.navButton}
             >
               <CalendarIcon size={24} strokeWidth={1.5} />
-              <span className={styles.navLabel}>マンスリー</span>
+              <span className={styles.navLabel}>Calendar</span>
             </button>
 
             <button
-              onClick={() => setViewMode('anniversary')}
-              className={viewMode === 'anniversary' ? styles.navButtonActive : styles.navButton}
+              onClick={() => setViewMode('memories')}
+              className={viewMode === 'memories' ? styles.navButtonActive : styles.navButton}
             >
               <Heart size={24} strokeWidth={1.5} />
-              <span className={styles.navLabel}>アニバーサリー</span>
+              <span className={styles.navLabel}>Memories</span>
             </button>
 
             <button
-              onClick={() => setViewMode('minigame')}
-              className={viewMode === 'minigame' ? styles.navButtonActive : styles.navButton}
+              onClick={() => setViewMode('games')}
+              className={viewMode === 'games' ? styles.navButtonActive : styles.navButton}
             >
               <Gamepad2 size={24} strokeWidth={1.5} />
-              <span className={styles.navLabel}>ミニゲーム</span>
+              <span className={styles.navLabel}>Games</span>
             </button>
           </div>
         </div>
