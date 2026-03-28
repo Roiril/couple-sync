@@ -87,6 +87,12 @@ function App() {
     if (viewMode === 'health') {
       loadHealthRecords(getTodayStr());
     }
+    // Reset sliding state when changing view mode to prevent stuck animations
+    setIsAnimating(false);
+    setIsDragging(false);
+    setDragOffset(0);
+    setSlideDirection(0);
+    touchStartX.current = null;
   }, [viewMode]);
 
   useEffect(() => {
@@ -240,7 +246,7 @@ function App() {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (isAnimating) return; // Prevent interaction during transition
+    if (viewMode !== 'calendar' || isAnimating) return; // Prevent interaction during transition or in other modes
     // Ignore swipe logic if starting from inside an input or textarea
     const target = e.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
@@ -251,7 +257,7 @@ function App() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || isAnimating) return;
+    if (viewMode !== 'calendar' || touchStartX.current === null || isAnimating) return;
     const currentX = e.targetTouches[0].clientX;
     const diff = currentX - touchStartX.current;
     // Don't limit to Math.abs, we need negative direction for next month
@@ -259,7 +265,7 @@ function App() {
   };
 
   const handleTouchEnd = () => {
-    if (touchStartX.current === null || isAnimating) return;
+    if (viewMode !== 'calendar' || touchStartX.current === null || isAnimating) return;
 
     if (dragOffset === 0) {
       setIsDragging(false);
@@ -402,7 +408,7 @@ function App() {
 
   return (
     <div
-      className={styles.container}
+      className={`${styles.container} ${viewMode === 'calendar' ? styles.calendarMode : ''}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

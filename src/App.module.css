@@ -6,6 +6,9 @@
   /* Add top padding to shift everything down */
   overflow-x: hidden;
   position: relative;
+}
+
+.calendarMode {
   touch-action: pan-x;
 }
 
