@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Calendar as CalendarIcon, Heart, Gamepad2, Activity } from 'lucide-react';
 import styles from './App.module.css';
-import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase, getHealthRecords, saveHealthRecord, type HealthRecord } from './db';
+import { getDailySchedules, saveDailySchedule, type DailySchedule, getDateInfos, saveDateInfo, type DateInfo, syncFromSupabase, subscribeToSupabase, getHealthRecords, saveHealthRecord, getAllHealthRecords, type HealthRecord } from './db';
 import Tetris from './games/Tetris/Tetris';
 import { fetchHighScore } from './games/highScoreApi';
 
@@ -24,6 +24,9 @@ function App() {
   const [healthRecords, setHealthRecords] = useState<HealthRecord[]>([]);
   const [dateInfos, setDateInfos] = useState<DateInfo[]>([]);
   const [isSyncing, setIsSyncing] = useState(true);
+
+  const [healthViewTab, setHealthViewTab] = useState<'today' | 'history'>('today');
+  const [allHealthRecords, setAllHealthRecords] = useState<HealthRecord[]>([]);
 
   const handleMiniGameBack = useCallback(() => {
     setSelectedMiniGame(null);
@@ -94,6 +97,12 @@ function App() {
     setSlideDirection(0);
     touchStartX.current = null;
   }, [viewMode]);
+
+  useEffect(() => {
+    if (viewMode === 'health' && healthViewTab === 'history') {
+      getAllHealthRecords().then(setAllHealthRecords);
+    }
+  }, [viewMode, healthViewTab]);
 
   useEffect(() => {
     if (viewMode === 'games') {
@@ -581,9 +590,24 @@ function App() {
               {new Date().toLocaleDateString('ja-JP')}
             </div>
           </div>
+          <div className={styles.statusSwitch} style={{ marginBottom: '16px' }}>
+            <button
+              className={`${styles.statusButton} ${healthViewTab === 'today' ? styles.statusButtonActiveTentative : ''}`}
+              onClick={() => setHealthViewTab('today')}
+            >
+              今日の記録
+            </button>
+            <button
+              className={`${styles.statusButton} ${healthViewTab === 'history' ? styles.statusButtonActiveTentative : ''}`}
+              onClick={() => setHealthViewTab('history')}
+            >
+              履歴を見る
+            </button>
+          </div>
           
           <div className={styles.healthRecordsList}>
-            {(() => {
+            {healthViewTab === 'today' ? (
+              (() => {
               const today = getTodayStr();
               const record = healthRecords.find(r => r.userId === 'common' && r.date === today) || {} as Partial<HealthRecord>;
               return (
@@ -666,8 +690,6 @@ function App() {
                       </div>
                     </label>
 
-                    <div className={styles.healthDivider}></div>
-
                     <div className={styles.healthCheckItem}>
                       <label className={styles.healthCheckboxLabel}>
                         <input 
@@ -694,7 +716,43 @@ function App() {
                   </div>
                 </div>
               );
-            })()}
+              })()
+            ) : (
+              <div className={styles.healthHistoryContainer}>
+                <table className={styles.healthHistoryTable}>
+                  <thead>
+                    <tr>
+                      <th>日付</th>
+                      <th>睡眠</th>
+                      <th>朝</th>
+                      <th>昼</th>
+                      <th>夜</th>
+                      <th>コンタクト</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allHealthRecords.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', opacity: 0.5 }}>記録がありません</td>
+                      </tr>
+                    ) : (
+                      allHealthRecords.map(r => (
+                        <tr key={r.id}>
+                          <td>{r.date.slice(5).replace('-', '/')}</td>
+                          <td>{r.sleepHours ? `${r.sleepHours}h` : '-'}</td>
+                          <td>{r.breakfastText || '-'}</td>
+                          <td>{r.lunchText || '-'}</td>
+                          <td>{r.dinnerText || '-'}</td>
+                          <td>
+                            {r.woreContacts ? (r.removedContacts ? '〇 外した' : '〇 つけたまま') : '-'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       ) : selectedMiniGame === 'tetris' ? (

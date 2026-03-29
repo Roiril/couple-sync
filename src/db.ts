@@ -331,6 +331,12 @@ export async function getHealthRecords(date: string): Promise<HealthRecord[]> {
     return records.filter(r => !r.isDeleted);
 }
 
+export async function getAllHealthRecords(): Promise<HealthRecord[]> {
+    const db = await initDB();
+    const records = await db.getAllFromIndex('health_records', 'by-date');
+    return records.filter(r => !r.isDeleted).reverse();
+}
+
 export async function saveHealthRecord(record: HealthRecord): Promise<void> {
     const db = await initDB();
     const updatedRecord = { 
