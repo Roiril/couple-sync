@@ -42,6 +42,7 @@ export interface HealthRecord {
     id: string; // `${date}_${userId}`
     date: string; // 'YYYY-MM-DD'
     userId: string; // 'taisei' | 'hina'
+    breakfastText?: string;
     lunchText?: string;
     dinnerText?: string;
     sleepHours?: string;
@@ -422,6 +423,7 @@ async function pushHealthRecordRaw(record: HealthRecord) {
             id: record.id,
             date: record.date,
             user_id: record.userId,
+            breakfast_text: record.breakfastText,
             lunch_text: record.lunchText,
             dinner_text: record.dinnerText,
             sleep_hours: record.sleepHours,
@@ -588,6 +590,7 @@ export async function syncFromSupabase() {
                         id: r.id,
                         date: r.date,
                         userId: r.user_id,
+                        breakfastText: r.breakfast_text,
                         lunchText: r.lunch_text,
                         dinnerText: r.dinner_text,
                         sleepHours: r.sleep_hours,

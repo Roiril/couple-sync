@@ -593,6 +593,27 @@ function App() {
                       <div className={styles.healthCheckboxLabel}>
                         <input 
                           type="checkbox" 
+                          checked={!!record.breakfastText}
+                          onChange={(e) => handleHealthRecordChange({ breakfastText: e.target.checked ? '食べた' : '' })}
+                          className={styles.healthCheckbox}
+                        />
+                        今日は朝ごはん食べた？
+                      </div>
+                      {record.breakfastText && (
+                        <input 
+                          type="text" 
+                          placeholder="食べたもの" 
+                          value={record.breakfastText !== '食べた' ? record.breakfastText : ''} 
+                          onChange={(e) => handleHealthRecordChange({ breakfastText: e.target.value || '食べた' })}
+                          className={styles.healthTextInput}
+                        />
+                      )}
+                    </label>
+
+                    <label className={styles.healthCheckItem}>
+                      <div className={styles.healthCheckboxLabel}>
+                        <input 
+                          type="checkbox" 
                           checked={!!record.lunchText}
                           onChange={(e) => handleHealthRecordChange({ lunchText: e.target.checked ? '食べた' : '' })}
                           className={styles.healthCheckbox}
